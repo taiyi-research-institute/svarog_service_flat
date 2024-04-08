@@ -1,0 +1,108 @@
+syntax = "proto3";
+option go_package = "proto/gen";
+package svarog;
+
+service MpcPeer {
+    rpc NewSession(SessionConfig) returns (SessionTag);
+    rpc Keygen(ParamsKeygen) returns (Keystore);
+    rpc KeygenMnem(ParamsKeygen) returns (OptionalKeystore);
+    rpc Sign(ParamsSign) returns (VecSignature);
+    rpc Reshare(ParamsReshare) returns (OptionalKeystore);
+}
+
+enum Algorithm {
+    DONT_CARE = 0;
+    GG18_SECP256K1 = 1;
+    FROST_ED25519 = 2;
+}
+
+message SessionConfig {
+    Algorithm algorithm = 1;
+    string sesman_url = 2;
+    string session_id = 3;
+    uint64 threshold = 4;
+    map<string, bool> players = 5;
+    uint64 threshold_reshared = 6;
+    map<string, bool> players_reshared = 7;
+    uint64 expire_at = 8;
+}
+
+message SessionTag {
+    string session_id = 1;
+    uint64 expire_at = 2;
+}
+
+message ParamsKeygen {
+    string sesman_url = 1;
+    string session_id = 2;
+    string member_name = 3;
+}
+
+message Keystore {
+    uint64 i = 1;
+    bytes ui = 2;
+    bytes xi = 3;
+    map<uint64, CoefComs> vss_scheme = 4;
+    string xpub = 5;
+
+    bytes misc = 16;
+}
+
+message OptionalKeystore {
+    optional Keystore value = 1;
+}
+
+message CoefComs {
+    repeated bytes values = 1;
+}
+
+message ParamsSign {
+    string sesman_url = 1;
+    string session_id = 2;
+    Keystore keystore = 3;
+    repeated SignTask tasks = 6;
+}
+
+message SignTask {
+    string derivation_path = 1;
+    bytes tx_hash = 2;
+}
+
+message VecSignature {
+    repeated Signature values = 1;
+}
+
+message Signature {
+    bytes r = 1;
+    bytes s = 2;
+    uint32 v = 3;
+}
+
+message ParamsReshare {
+    string sesman_url = 1;
+    string session_id = 2;
+    string member_name = 3;
+    Keystore keystore = 4;
+}
+
+service MpcSessionManager {
+    rpc NewSession(SessionConfig) returns (SessionTag);
+    rpc GetSessionConfig(SessionTag) returns (SessionConfig);
+    rpc Inbox(VecMessage) returns (Void);
+    rpc Outbox(VecMessage) returns (VecMessage);
+}
+
+message Message {
+    string session_id = 1;
+    string topic = 2;
+    uint64 src = 3;
+    uint64 dst = 4;
+    uint64 seq = 5;
+    optional bytes obj = 6;
+}
+
+message VecMessage {
+    repeated Message values = 1;
+}
+
+message Void {}

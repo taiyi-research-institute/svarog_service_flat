@@ -1,0 +1,31 @@
+[package]
+name = "svarog_peer"
+version = "0.1.0"
+edition = "2021"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "svarog_peer"
+path = "src/server_main.rs"
+
+# [[bin]]
+# name = "toy_client"
+# path = "toy_client/main.rs"
+
+[dependencies]
+bs58 = { workspace = true }
+clap = { workspace = true }
+crossbeam-skiplist = { workspace = true }
+dashmap = { workspace = true }
+erreur = { workspace = true }
+hex = { workspace = true }
+mpc_sig_abs = { workspace = true }
+serde = { workspace = true }
+serde-pickle = { workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true }
+uuid = { workspace = true }
+
+svarog_algo_flat = { workspace = true }
+svarog_grpc = { workspace = true }
+svarog_sesman = { workspace = true }

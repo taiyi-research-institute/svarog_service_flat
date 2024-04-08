@@ -1,0 +1,30 @@
+[package]
+name = "svarog_sesman"
+version = "0.1.0"
+edition = "2021"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "svarog_sesman"
+path = "src/server_main.rs"
+
+[lib]
+name = "svarog_sesman"
+path = "src/client_lib.rs"
+
+[dependencies]
+clap = { workspace = true }
+crossbeam-skiplist = { workspace = true }
+dashmap = { workspace = true }
+erreur = { workspace = true }
+hex = { workspace = true }
+mpc_sig_abs = { workspace = true }
+serde = { workspace = true }
+serde-pickle = { workspace = true }
+svarog_grpc = { workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true }
