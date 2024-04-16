@@ -1,4 +1,7 @@
-/// 模块职责: 加工算法参数, 调用算法实现.
+/// 模块职责:
+/// 1. 将player名称转换为数字id
+/// 2. 将Keystore和Signature转换为内部数据结构, 以及反向转换.
+/// 3. 调用算法实现.
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use erreur::*;
@@ -9,11 +12,12 @@ use svarog_grpc::{
 use svarog_sesman::SvarogChannel;
 use tonic::{Request, Response, Status};
 
-use crate::server_impl::biz::{keygen_mnem_frost, keygen_mnem_gg18, reshare_frost, reshare_gg18, sign_frost, sign_gg18};
+use super::biz::{
+    keygen_frost, keygen_gg18, keygen_mnem_frost, keygen_mnem_gg18, reshare_frost, reshare_gg18,
+    sign_frost, sign_gg18,
+};
 
-use super::biz::{keygen_frost, keygen_gg18};
-
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub(crate) struct SvarogPeer;
 
 fn ses_arch(name: &str, names: &HashMap<String, bool>) -> (usize, BTreeSet<usize>) {
@@ -22,9 +26,10 @@ fn ses_arch(name: &str, names: &HashMap<String, bool>) -> (usize, BTreeSet<usize
     let mut players = BTreeSet::new();
     for (j, (_name, &att)) in names.iter().enumerate() {
         if att {
+            let j = j + 1;
             players.insert(j);
             if name == _name {
-                i = j + 1;
+                i = j;
             }
         }
     }

@@ -8,9 +8,9 @@ edition = "2021"
 name = "svarog_peer"
 path = "src/server_main.rs"
 
-# [[bin]]
-# name = "toy_client"
-# path = "toy_client/main.rs"
+[[bin]]
+name = "test_keygen_sign"
+path = "demos/test_keygen_sign.rs"
 
 [dependencies]
 bs58 = { workspace = true }

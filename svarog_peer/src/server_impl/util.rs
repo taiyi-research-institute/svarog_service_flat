@@ -53,6 +53,7 @@ impl KeystoreConversion for KeystoreEcdsa {
         }
         (keystore.paillier_key, keystore.paillier_com_dict) =
             serde_pickle::from_slice(&keystore_pb.misc, Default::default()).catch_()?;
+        keystore.paillier_key.precompute_cache().catch_()?;
         Ok(keystore)
     }
 }

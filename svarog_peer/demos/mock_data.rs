@@ -1,50 +1,17 @@
 #![allow(nonstandard_style)]
-
+#![allow(dead_code)]
 use std::collections::HashMap;
 
-/// 模块功能: 集成测试keygen, sign, keygen_mnem, reshare
-use erreur::*;
-
-use clap::{Arg, ArgAction, Command};
 use rand::Rng;
 use sha2::digest::crypto_common::rand_core::OsRng;
-use svarog_grpc::{
-    mpc_peer_client::MpcPeerClient, Algorithm, ParamsKeygen, ParamsSign, SessionConfig, SignTask,
-};
+use svarog_grpc::{SessionConfig, SignTask};
 
-const peer_url: &str = "http://127.0.0.1:9001";
-const sesman_url: &str = "http://127.0.0.1:9000";
-const algorithms: [Algorithm; 2] = [Algorithm::Gg18Secp256k1, Algorithm::FrostEd25519];
-const th1: usize = 3;
-const th2: usize = 4;
-const players1: [&str; 5] = ["Alice", "Bob", "Charlie", "David", "Eve"];
-const players2: [&str; 7] = [
+pub const th1: usize = 3;
+pub const th2: usize = 4;
+pub const players1: [&str; 5] = ["Alice", "Bob", "Charlie", "David", "Eve"];
+pub const players2: [&str; 7] = [
     "Frank", "Gabriel", "Henry", "Ivan", "Jack", "Kevin", "Lucas",
 ];
-
-/// 测试普通的keygen, sign
-#[tokio::test]
-async fn test_keygen_sign() -> Resultat<()> {
-    let peer = MpcPeerClient::connect(peer_url).await.catch_()?;
-
-    for algo in algorithms.iter() {}
-
-    Ok(())
-}
-
-/// 测试助记词keygen, 批量sign
-#[tokio::test]
-async fn test_mkeygen_bsign() -> Resultat<()> {
-    let peer = MpcPeerClient::connect(peer_url).await.catch_()?;
-    Ok(())
-}
-
-/// 测试reshare
-#[tokio::test]
-async fn test_reshare() -> Resultat<()> {
-    let peer = MpcPeerClient::connect(peer_url).await.catch_()?;
-    Ok(())
-}
 
 pub fn mock_sign_tasks() -> Vec<SignTask> {
     use sha2::{Digest, Sha256};
@@ -67,6 +34,10 @@ pub fn mock_sign_tasks() -> Vec<SignTask> {
     }
 
     tasks
+}
+
+pub fn mock_one_sign_task() -> Vec<SignTask> {
+    vec![mock_sign_tasks().pop().unwrap()]
 }
 
 pub fn mock_keygen_config(th: usize, players: &[&str]) -> SessionConfig {
@@ -110,30 +81,13 @@ pub fn mock_reshare_config(
     consumer_th: usize,
     consumers: &[&str],
 ) -> SessionConfig {
-    let mut rng = OsRng;
     let mut config = SessionConfig::default();
 
-    use rand::seq::SliceRandom; // provides Vec::shuffle()
-    config.players = {
-        let mut providers: Vec<String> = providers.iter().map(|s| s.to_string()).collect();
-        providers.shuffle(&mut rng);
+    let _config = mock_sign_config(provider_th, providers);
+    config.players = _config.players;
 
-        let n = providers.len();
-        let n_att = rng.gen_range(provider_th..=n);
-
-        let mut signers = HashMap::new();
-        for i in 0..n {
-            let name = providers[i].clone();
-            if i < n_att {
-                signers.insert(name, true);
-            } else {
-                signers.insert(name, false);
-            }
-        }
-        signers
-    };
-
+    let _config = mock_keygen_config(consumer_th, consumers);
     config.threshold = consumer_th as u64;
-    config.players_reshared = consumers.iter().map(|s| (s.to_string(), true)).collect();
+    config.players_reshared = _config.players_reshared;
     config
 }
