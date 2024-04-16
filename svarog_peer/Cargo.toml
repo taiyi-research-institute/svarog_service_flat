@@ -12,6 +12,10 @@ path = "src/server_main.rs"
 name = "test_keygen_sign"
 path = "demos/test_keygen_sign.rs"
 
+[[bin]]
+name = "test_mkeygen_bsign"
+path = "demos/test_mkeygen_bsign.rs"
+
 [dependencies]
 bs58 = { workspace = true }
 clap = { workspace = true }

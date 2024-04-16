@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use rand::Rng;
 use sha2::digest::crypto_common::rand_core::OsRng;
-use svarog_grpc::{SessionConfig, SignTask};
+use svarog_grpc::{Mnemonic, SessionConfig, SignTask};
 
 pub const th1: usize = 3;
 pub const th2: usize = 4;
@@ -90,4 +90,11 @@ pub fn mock_reshare_config(
     config.threshold = consumer_th as u64;
     config.players_reshared = _config.players_reshared;
     config
+}
+
+pub fn mock_mnem() -> Mnemonic {
+    Mnemonic {
+        words: "park remain person kitchen mule spell knee armed position rail grid ankle".to_owned(),
+        password: "".to_owned(),
+    }
 }

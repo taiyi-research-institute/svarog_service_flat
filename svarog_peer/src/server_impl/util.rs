@@ -91,6 +91,7 @@ impl KeystoreConversion for KeystoreSchnorr {
         for (i, coef_com_vec_pb) in keystore_pb.vss_scheme.iter() {
             let mut coef_com_vec = Vec::new();
             for coef_com in coef_com_vec_pb.values.iter() {
+                assert_throw!(coef_com.len() == 32);
                 let coef_com = CompressedRistretto::from_slice(&coef_com).catch_()?;
                 let coef_com = coef_com.decompress().ifnone_()?;
                 coef_com_vec.push(coef_com);

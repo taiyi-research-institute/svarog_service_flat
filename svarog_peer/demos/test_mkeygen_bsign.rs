@@ -2,7 +2,7 @@
 use std::collections::BTreeMap;
 
 use erreur::*;
-use svarog_grpc::{mpc_peer_client::MpcPeerClient, Algorithm, ParamsKeygen, ParamsSign};
+use svarog_grpc::{mpc_peer_client::MpcPeerClient, Algorithm, ParamsKeygen, ParamsKeygenMnem, ParamsSign};
 
 mod mock_data;
 use mock_data::*;
@@ -31,16 +31,30 @@ async fn main() -> Resultat<()> {
             let mut threads = BTreeMap::new();
             for (player, _) in cfg.players.iter() {
                 let player = player.clone();
-                let req = Request::new(ParamsKeygen {
+                let req = Request::new(ParamsKeygenMnem {
                     sesman_url: sesman_url.to_owned(),
                     session_id: sid.clone(),
                     member_name: player.to_owned(),
+                    mnemonic: None,
                 });
     
                 let mut peer = peer.clone();
-                let future = async move { peer.keygen(req).await };
+                let future = async move { peer.keygen_mnem(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player, thread);
+            }
+            '_mnem_provider: {
+                let req = Request::new(ParamsKeygenMnem {
+                    sesman_url: sesman_url.to_owned(),
+                    session_id: sid.clone(),
+                    member_name: "".to_owned(),
+                    mnemonic: Some(mock_mnem()),
+                });
+
+                let mut peer = peer.clone();
+                let future = async move { peer.keygen_mnem(req).await };
+                let thread = tokio::spawn(future);
+                threads.insert("".to_owned(), thread);
             }
             let mut keystores = BTreeMap::new();
             for (player, thread) in threads.iter_mut() {
@@ -49,7 +63,9 @@ async fn main() -> Resultat<()> {
                     .catch("Panic", "")?
                     .catch("Exception", "")?
                     .into_inner();
-                keystores.insert(player.clone(), resp);
+                if let Some(resp) = resp.value {
+                    keystores.insert(player.clone(), resp);
+                }
             }
             keystores
         };
@@ -74,7 +90,7 @@ async fn main() -> Resultat<()> {
                     sesman_url: sesman_url.to_owned(),
                     session_id: sid.clone(),
                     keystore: Some(keystore.clone()),
-                    tasks: mock_one_sign_task(),
+                    tasks: mock_sign_tasks(),
                 });
     
                 let mut peer = peer.clone();

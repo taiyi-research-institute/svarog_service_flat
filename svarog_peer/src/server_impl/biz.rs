@@ -79,7 +79,7 @@ pub(crate) async fn keygen_mnem_frost(
     players: BTreeSet<usize>,
     mnem: Option<Mnemonic>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo_flat::gg18::{keygen_mnem_consumer, keygen_mnem_provider};
+    use svarog_algo_flat::frost::{keygen_mnem_consumer, keygen_mnem_provider};
 
     let provider_thread = if let Some(mnem) = mnem {
         let future: _ =
@@ -90,8 +90,10 @@ pub(crate) async fn keygen_mnem_frost(
         None
     };
 
+    let sid = chan.sid().to_owned();
+
     let ret = if i > 0 {
-        let keystore = keygen_mnem_consumer(chan, players, t, i).await.catch_()?;
+        let keystore = keygen_mnem_consumer(chan, players, t, i, sid).await.catch_()?;
         let keystore = keystore.to_proto().catch_()?;
         Some(keystore)
     } else {
