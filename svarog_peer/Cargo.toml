@@ -10,11 +10,15 @@ path = "src/server_main.rs"
 
 [[bin]]
 name = "test_keygen_sign"
-path = "demos/test_keygen_sign.rs"
+path = "src/_tests/test_keygen_sign.rs"
 
 [[bin]]
 name = "test_mkeygen_bsign"
-path = "demos/test_mkeygen_bsign.rs"
+path = "src/_tests/test_mkeygen_bsign.rs"
+
+[[bin]]
+name = "test_reshare"
+path = "src/_tests/test_reshare.rs"
 
 [dependencies]
 bs58 = { workspace = true }

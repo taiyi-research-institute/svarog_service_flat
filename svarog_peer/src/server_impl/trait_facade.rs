@@ -21,7 +21,7 @@ use super::biz::{
 pub(crate) struct SvarogPeer;
 
 fn ses_arch(name: &str, names: &HashMap<String, bool>) -> (usize, BTreeSet<usize>) {
-    let names: BTreeMap<String, bool> = names.iter().map(|(k, _)| (k.clone(), true)).collect();
+    let names: BTreeMap<String, bool> = names.iter().map(|(k, v)| (k.clone(), *v)).collect();
     let mut i = 0;
     let mut players = BTreeSet::new();
     for (j, (_name, &att)) in names.iter().enumerate() {
@@ -170,11 +170,17 @@ impl MpcPeer for SvarogPeer {
             let keystore = params.keystore;
             let t = cfg.threshold as usize;
             let (_, providers) = ses_arch("", &cfg.players);
+            println!("reshare providers: {:?}", &providers);
             if let Some(keystore) = &keystore {
                 let i0 = keystore.i as usize;
+                println!("reshare provider: Player {}, ID {}", &params.member_name, i0);
                 assert_throw!(providers.contains(&i0), "provider not in the session");
             }
             let (i, consumers) = ses_arch(&params.member_name, &cfg.players_reshared);
+            println!("reshare consumers: {:?}", &consumers);
+            if i > 0 {
+                println!("reshare consumer: Player {}, ID {}", &params.member_name, i);
+            }
             assert_throw!(
                 consumers.len() == cfg.players_reshared.len(),
                 "all keygen members should attend"

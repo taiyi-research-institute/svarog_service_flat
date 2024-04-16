@@ -93,7 +93,7 @@ message ParamsReshare {
     string sesman_url = 1;
     string session_id = 2;
     string member_name = 3;
-    Keystore keystore = 4;
+    optional Keystore keystore = 4;
 }
 
 service MpcSessionManager {

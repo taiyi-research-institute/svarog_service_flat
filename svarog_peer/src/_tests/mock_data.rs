@@ -1,6 +1,6 @@
 #![allow(nonstandard_style)]
 #![allow(dead_code)]
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 
 use rand::Rng;
 use sha2::digest::crypto_common::rand_core::OsRng;
@@ -10,7 +10,7 @@ pub const th1: usize = 3;
 pub const th2: usize = 4;
 pub const players1: [&str; 5] = ["Alice", "Bob", "Charlie", "David", "Eve"];
 pub const players2: [&str; 7] = [
-    "Frank", "Gabriel", "Henry", "Ivan", "Jack", "Kevin", "Lucas",
+    "Charlie", "David", "Eve", "Frank", "Gabriel", "Henry", "Ivan",
 ];
 
 pub fn mock_sign_tasks() -> Vec<SignTask> {
@@ -80,7 +80,7 @@ pub fn mock_reshare_config(
     providers: &[&str],
     consumer_th: usize,
     consumers: &[&str],
-) -> SessionConfig {
+) -> (SessionConfig, BTreeSet<String>) {
     let mut config = SessionConfig::default();
 
     let _config = mock_sign_config(provider_th, providers);
@@ -88,13 +88,26 @@ pub fn mock_reshare_config(
 
     let _config = mock_keygen_config(consumer_th, consumers);
     config.threshold = consumer_th as u64;
-    config.players_reshared = _config.players_reshared;
-    config
+    config.players_reshared = _config.players;
+
+    let provider_set: BTreeSet<String> = {
+        let mut res = BTreeSet::new();
+        for (player, &att) in config.players.iter() {
+            if att {
+                res.insert(player.clone());
+            }
+        }
+        res
+    };
+    let mut remain_set: BTreeSet<String> = config.players_reshared.keys().map(|s| s.clone()).collect();
+    remain_set = remain_set.difference(&provider_set).cloned().collect();
+    (config, remain_set)
 }
 
 pub fn mock_mnem() -> Mnemonic {
     Mnemonic {
-        words: "park remain person kitchen mule spell knee armed position rail grid ankle".to_owned(),
+        words: "park remain person kitchen mule spell knee armed position rail grid ankle"
+            .to_owned(),
         password: "".to_owned(),
     }
 }

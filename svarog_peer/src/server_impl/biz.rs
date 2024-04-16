@@ -187,7 +187,6 @@ pub(crate) async fn reshare_gg18(
     consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
     use svarog_algo_flat::gg18::{reshare_consumer, reshare_provider, KeystoreEcdsa};
-
     let provider_thread = if let Some(keystore) = keystore {
         let keystore = KeystoreEcdsa::from_proto(&keystore).catch_()?;
         let future: _ =
