@@ -1,40 +1,53 @@
+/// 模块职责:
+/// 1. 将内部的两种Keystore和Signature转换为相同的gRPC消息格式; 以及反向转换.
+/// 2. 为`keygen_mnem`, `reshare`这两个操作开辟线程. 这两个操作都有provider和consumer两个角色.
 use std::collections::BTreeSet;
 
 use erreur::*;
-use svarog_grpc::{Keystore, SignTask, Signature};
+use svarog_grpc::{Keystore, Mnemonic, SignTask, Signature};
 use svarog_sesman::SvarogChannel;
 
 use super::util::*;
 
-async fn keygen_gg18(chan: SvarogChannel, (i, n, t): (usize, usize, usize)) -> Resultat<Keystore> {
+pub(crate) async fn keygen_gg18(
+    chan: SvarogChannel,
+    i: usize,
+    t: usize,
+    players: BTreeSet<usize>,
+) -> Resultat<Keystore> {
     use svarog_algo_flat::gg18::keygen;
 
-    let players: BTreeSet<usize> = (1..=n).collect();
     let keystore = keygen(chan, players, t, i, None).await.catch_()?;
     let keystore = keystore.to_proto().catch_()?;
     Ok(keystore)
 }
 
-async fn keygen_frost(chan: SvarogChannel, (i, n, t): (usize, usize, usize)) -> Resultat<Keystore> {
+pub(crate) async fn keygen_frost(
+    chan: SvarogChannel,
+    i: usize,
+    t: usize,
+    players: BTreeSet<usize>,
+) -> Resultat<Keystore> {
     use svarog_algo_flat::frost::keygen;
 
-    let players: BTreeSet<usize> = (1..=n).collect();
     let sid = chan.sid().to_owned();
     let keystore = keygen(chan, players, t, i, None, sid).await.catch_()?;
     let keystore = keystore.to_proto().catch_()?;
     Ok(keystore)
 }
 
-async fn keygen_mnem_gg18(
+pub(crate) async fn keygen_mnem_gg18(
     chan: SvarogChannel,
-    (i, n, t): (usize, usize, usize),
-    mnem: Option<(String, String)>,
+    i: usize,
+    t: usize,
+    players: BTreeSet<usize>,
+    mnem: Option<Mnemonic>,
 ) -> Resultat<Option<Keystore>> {
     use svarog_algo_flat::gg18::{keygen_mnem_consumer, keygen_mnem_provider};
-    let players: BTreeSet<usize> = (1..=n).collect();
 
-    let provider_thread = if let Some((mnem, pwd)) = mnem {
-        let future: _ = keygen_mnem_provider(chan.clone(), players.clone(), mnem, pwd);
+    let provider_thread = if let Some(mnem) = mnem {
+        let future: _ =
+            keygen_mnem_provider(chan.clone(), players.clone(), mnem.words, mnem.password);
         let handle: _ = tokio::spawn(future);
         Some(handle)
     } else {
@@ -59,16 +72,18 @@ async fn keygen_mnem_gg18(
     Ok(ret)
 }
 
-async fn keygen_mnem_frost(
+pub(crate) async fn keygen_mnem_frost(
     chan: SvarogChannel,
-    (i, n, t): (usize, usize, usize),
-    mnem: Option<(String, String)>,
+    i: usize,
+    t: usize,
+    players: BTreeSet<usize>,
+    mnem: Option<Mnemonic>,
 ) -> Resultat<Option<Keystore>> {
     use svarog_algo_flat::gg18::{keygen_mnem_consumer, keygen_mnem_provider};
-    let players: BTreeSet<usize> = (1..=n).collect();
 
-    let provider_thread = if let Some((mnem, pwd)) = mnem {
-        let future: _ = keygen_mnem_provider(chan.clone(), players.clone(), mnem, pwd);
+    let provider_thread = if let Some(mnem) = mnem {
+        let future: _ =
+            keygen_mnem_provider(chan.clone(), players.clone(), mnem.words, mnem.password);
         let handle: _ = tokio::spawn(future);
         Some(handle)
     } else {
@@ -93,7 +108,7 @@ async fn keygen_mnem_frost(
     Ok(ret)
 }
 
-async fn sign_gg18(
+pub(crate) async fn sign_gg18(
     chan: SvarogChannel,
     keystore: Keystore,
     signers: BTreeSet<usize>,
@@ -127,7 +142,7 @@ async fn sign_gg18(
     Ok(res)
 }
 
-async fn sign_frost(
+pub(crate) async fn sign_frost(
     chan: SvarogChannel,
     keystore: Keystore,
     signers: BTreeSet<usize>,
@@ -161,14 +176,15 @@ async fn sign_frost(
     Ok(res)
 }
 
-async fn reshare_gg18(
+pub(crate) async fn reshare_gg18(
     chan: SvarogChannel,
     keystore: Option<Keystore>,
+    i: usize,
+    t: usize,
     providers: BTreeSet<usize>,
-    (i, n, t): (usize, usize, usize),
+    consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
     use svarog_algo_flat::gg18::{reshare_consumer, reshare_provider, KeystoreEcdsa};
-    let consumers: BTreeSet<usize> = (1..=n).collect();
 
     let provider_thread = if let Some(keystore) = keystore {
         let keystore = KeystoreEcdsa::from_proto(&keystore).catch_()?;
@@ -201,14 +217,15 @@ async fn reshare_gg18(
     Ok(ret)
 }
 
-async fn reshare_frost(
+pub(crate) async fn reshare_frost(
     chan: SvarogChannel,
     keystore: Option<Keystore>,
+    i: usize,
+    t: usize,
     providers: BTreeSet<usize>,
-    (i, n, t): (usize, usize, usize),
+    consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
     use svarog_algo_flat::frost::{reshare_consumer, reshare_provider, KeystoreSchnorr};
-    let consumers: BTreeSet<usize> = (1..=n).collect();
 
     let provider_thread = if let Some(keystore) = keystore {
         let keystore = KeystoreSchnorr::from_proto(&keystore).catch_()?;

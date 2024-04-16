@@ -14,6 +14,7 @@ use tonic::transport::Channel;
 #[derive(Clone)]
 pub struct SvarogChannel {
     sid: String,
+    expire_at: u64,
     cl: MpcSessionManagerClient<Channel>,
     tx: Vec<Message>,
     rx: HashMap<MessageIndex, Option<Vec<u8>>>,
@@ -32,6 +33,10 @@ impl SvarogChannel {
         &self.sid
     }
 
+    pub fn expire_at(&self) -> u64 {
+        self.expire_at
+    }
+
     pub async fn new_session(cfg: &SessionConfig, sesman_url: &str) -> Resultat<Self> {
         let mut cl = MpcSessionManagerClient::connect(sesman_url.to_owned())
             .await
@@ -44,6 +49,7 @@ impl SvarogChannel {
             .into_inner();
         Ok(Self {
             sid: tag.session_id,
+            expire_at: tag.expire_at,
             cl,
             tx: Vec::new(),
             rx: HashMap::new(),
@@ -55,7 +61,7 @@ impl SvarogChannel {
             .await
             .map_err(|e| format!("{:#?}", e))
             .catch("CannotConnectGrpcServer", sesman_url)?;
-        let cfg = cl
+        let cfg: SessionConfig = cl
             .get_session_config(SessionTag {
                 session_id: sid.to_owned(),
                 expire_at: 0,
@@ -65,6 +71,7 @@ impl SvarogChannel {
             .into_inner();
         let _self = Self {
             sid: sid.to_string(),
+            expire_at: cfg.expire_at,
             cl,
             tx: Vec::new(),
             rx: HashMap::new(),

@@ -5,7 +5,7 @@ package svarog;
 service MpcPeer {
     rpc NewSession(SessionConfig) returns (SessionTag);
     rpc Keygen(ParamsKeygen) returns (Keystore);
-    rpc KeygenMnem(ParamsKeygen) returns (OptionalKeystore);
+    rpc KeygenMnem(ParamsKeygenMnem) returns (OptionalKeystore);
     rpc Sign(ParamsSign) returns (VecSignature);
     rpc Reshare(ParamsReshare) returns (OptionalKeystore);
 }
@@ -22,9 +22,8 @@ message SessionConfig {
     string session_id = 3;
     uint64 threshold = 4;
     map<string, bool> players = 5;
-    uint64 threshold_reshared = 6;
-    map<string, bool> players_reshared = 7;
-    uint64 expire_at = 8;
+    map<string, bool> players_reshared = 6;
+    uint64 expire_at = 7;
 }
 
 message SessionTag {
@@ -36,6 +35,18 @@ message ParamsKeygen {
     string sesman_url = 1;
     string session_id = 2;
     string member_name = 3;
+}
+
+message Mnemonic {
+    string words = 1;
+    string password = 2;
+}
+
+message ParamsKeygenMnem {
+    string sesman_url = 1;
+    string session_id = 2;
+    string member_name = 3;
+    optional Mnemonic mnemonic = 4;
 }
 
 message Keystore {
