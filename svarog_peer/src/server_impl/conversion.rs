@@ -27,7 +27,7 @@ impl KeystoreConversion for KeystoreEcdsa {
             keystore_pb.vss_scheme.insert(*i as u64, coef_com_vec_pb);
         }
         keystore_pb.xpub = self.xpub().catch_()?;
-        let misc = (self.paillier_key.clone(), self.paillier_com_dict.clone());
+        let misc = (self.paillier_key.clone(), self.paillier_n_dict.clone());
         let misc_bytes = serde_pickle::to_vec(&misc, Default::default()).catch_()?;
         keystore_pb.misc = misc_bytes;
 
@@ -51,7 +51,7 @@ impl KeystoreConversion for KeystoreEcdsa {
             }
             keystore.vss_scheme.insert(*i as usize, coef_com_vec);
         }
-        (keystore.paillier_key, keystore.paillier_com_dict) =
+        (keystore.paillier_key, keystore.paillier_n_dict) =
             serde_pickle::from_slice(&keystore_pb.misc, Default::default()).catch_()?;
         keystore.paillier_key.precompute_cache().catch_()?;
         Ok(keystore)

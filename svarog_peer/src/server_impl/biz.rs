@@ -7,7 +7,7 @@ use erreur::*;
 use svarog_grpc::{Keystore, Mnemonic, SignTask, Signature};
 use svarog_sesman::SvarogChannel;
 
-use super::util::*;
+use super::conversion::*;
 
 pub(crate) async fn keygen_gg18(
     chan: SvarogChannel,
