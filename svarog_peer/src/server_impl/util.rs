@@ -109,8 +109,10 @@ pub(crate) trait SignatureConversion {
 
 impl SignatureConversion for SignatureEcdsa {
     fn to_proto(&self) -> Resultat<Signature> {
+        use svarog_algo_flat::gg18::AffineCoordinates;
+        
         let mut ret = Signature::default();
-        ret.r = self.R.to33bytes().to_vec();
+        ret.r = self.R.to_affine().x().to_vec();
         ret.s = self.s.to_bytes().to_vec();
         ret.v = self.v as u32;
         Ok(ret)
