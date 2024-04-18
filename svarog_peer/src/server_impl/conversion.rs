@@ -3,7 +3,7 @@ use svarog_algo_flat::{
     frost::{KeystoreSchnorr, SignatureSchnorr},
     gg18::{KeystoreEcdsa, SignatureEcdsa},
 };
-use svarog_grpc::{CoefComs, Keystore, Signature};
+use svarog_grpc::{Algorithm, CoefComs, Keystore, Signature};
 
 pub(crate) trait KeystoreConversion {
     fn to_proto(&self) -> Resultat<Keystore>;
@@ -29,6 +29,7 @@ impl KeystoreConversion for KeystoreEcdsa {
         keystore_pb.xpub = self.xpub().catch_()?;
         let misc = (self.paillier_key.clone(), self.paillier_n_dict.clone());
         let misc_bytes = serde_pickle::to_vec(&misc, Default::default()).catch_()?;
+        keystore_pb.algo = Algorithm::Gg18Secp256k1.into();
         keystore_pb.misc = misc_bytes;
 
         Ok(keystore_pb)
@@ -38,7 +39,9 @@ impl KeystoreConversion for KeystoreEcdsa {
     where
         Self: Sized,
     {
-        use svarog_algo_flat::gg18::{ProjectivePoint, Scalar};
+        use svarog_algo_flat::k256::{ProjectivePoint, Scalar};
+        assert_throw!(keystore_pb.algo() == Algorithm::Gg18Secp256k1);
+
         let mut keystore = Self::default();
         keystore.i = keystore_pb.i as usize;
         keystore.ui = Scalar::from_bytes_mod_order(&keystore_pb.ui);
@@ -73,6 +76,7 @@ impl KeystoreConversion for KeystoreSchnorr {
             keystore_pb.vss_scheme.insert(*i as u64, coef_com_vec_pb);
         }
         keystore_pb.xpub = self.xpub().catch_()?;
+        keystore_pb.algo = Algorithm::FrostEd25519.into();
 
         Ok(keystore_pb)
     }
@@ -81,7 +85,9 @@ impl KeystoreConversion for KeystoreSchnorr {
     where
         Self: Sized,
     {
-        use svarog_algo_flat::frost::{CompressedRistretto, Scalar};
+        use svarog_algo_flat::curve25519_dalek::{ristretto::CompressedRistretto, Scalar};
+        assert_throw!(keystore_pb.algo() == Algorithm::FrostEd25519);
+
         let mut keystore = Self::default();
         keystore.i = keystore_pb.i as usize;
         assert_throw!(keystore_pb.ui.len() == 32);
@@ -109,8 +115,8 @@ pub(crate) trait SignatureConversion {
 
 impl SignatureConversion for SignatureEcdsa {
     fn to_proto(&self) -> Resultat<Signature> {
-        use svarog_algo_flat::gg18::AffineCoordinates;
-        
+        use svarog_algo_flat::k256::elliptic_curve::point::AffineCoordinates;
+
         let mut ret = Signature::default();
         ret.r = self.R.to_affine().x().to_vec();
         ret.s = self.s.to_bytes().to_vec();

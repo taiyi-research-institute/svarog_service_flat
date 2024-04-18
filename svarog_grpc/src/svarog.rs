@@ -77,6 +77,8 @@ pub struct Keystore {
     pub vss_scheme: ::std::collections::HashMap<u64, CoefComs>,
     #[prost(string, tag = "5")]
     pub xpub: ::prost::alloc::string::String,
+    #[prost(enumeration = "Algorithm", tag = "6")]
+    pub algo: i32,
     #[prost(bytes = "vec", tag = "16")]
     pub misc: ::prost::alloc::vec::Vec<u8>,
 }
