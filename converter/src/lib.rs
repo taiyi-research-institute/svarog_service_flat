@@ -5,7 +5,7 @@ use erreur::*;
 use serde_json::{from_str, from_value, Value};
 use svarog_algo_flat::gg18::{KeystoreEcdsa, PaillierKey2048, ProjectivePoint, Scalar};
 use svarog_algo_flat::num_bigint::BigInt;
-use svarog_grpc::{Algorithm, CoefComs, Keystore};
+use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme};
 
 pub fn convert(old_json: &str) -> Resultat<Keystore> {
     let new = convert_inner(old_json).catch_()?;
@@ -25,7 +25,10 @@ pub fn convert(old_json: &str) -> Resultat<Keystore> {
     keystore_pb.xpub = new.xpub().catch_()?;
     let misc = (new.paillier_key.clone(), new.paillier_n_dict.clone());
     let misc_bytes = serde_pickle::to_vec(&misc, Default::default()).catch_()?;
-    keystore_pb.algo = Algorithm::Gg18Secp256k1.into();
+    keystore_pb.algo = Some(Algorithm {
+        curve: Curve::Secp256k1.into(),
+        scheme: Scheme::ElGamal.into(),
+    });
     keystore_pb.misc = misc_bytes;
 
     Ok(keystore_pb)
@@ -148,7 +151,7 @@ mod tests {
             .catch_()?;
 
         let mut keystores = BTreeMap::new();
-        for (i, json) in KEYSTORES.iter().enumerate() {
+        for (_i, json) in KEYSTORES.iter().enumerate() {
             let keystore = convert_inner(json).catch_()?;
             keystores.insert(keystore.i, keystore);
         }

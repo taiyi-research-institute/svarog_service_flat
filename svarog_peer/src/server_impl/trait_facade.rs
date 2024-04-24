@@ -6,8 +6,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use erreur::*;
 use svarog_grpc::{
-    mpc_peer_server::MpcPeer, Keystore, OptionalKeystore, ParamsKeygen, ParamsKeygenMnem,
-    ParamsReshare, ParamsSign, SessionConfig, SessionTag, Signature, VecSignature,
+    mpc_peer_server::MpcPeer, Curve, Keystore, OptionalKeystore, ParamsKeygen, ParamsKeygenMnem,
+    ParamsReshare, ParamsSign, Scheme, SessionConfig, SessionTag, Signature, VecSignature,
 };
 use svarog_sesman::SvarogChannel;
 use tonic::{Request, Response, Status};
@@ -66,15 +66,19 @@ impl MpcPeer for SvarogPeer {
                 players.len() == cfg.players.len(),
                 "all keygen members should attend"
             );
-            let keystore = match cfg.algorithm() {
-                svarog_grpc::Algorithm::DontCare => {
-                    throw!("", "Algorithm not specified");
-                }
-                svarog_grpc::Algorithm::Gg18Secp256k1 => {
+            let algo = cfg.algorithm.ifnone_()?;
+            let curve = algo.curve();
+            let scheme = algo.scheme();
+            let keystore = match (curve, scheme) {
+                (Curve::Secp256k1, Scheme::ElGamal) => {
                     keygen_gg18(chan, i, t, players).await.catch_()?
                 }
-                svarog_grpc::Algorithm::FrostEd25519 => {
+                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
                     keygen_frost(chan, i, t, players).await.catch_()?
+                }
+                _ => {
+                    let msg = format!("Combination of curve {:?} and scheme {:?}.", curve, scheme);
+                    throw!("NotImplemented", msg);
                 }
             };
             Ok(keystore)
@@ -101,19 +105,23 @@ impl MpcPeer for SvarogPeer {
                 players.len() == cfg.players.len(),
                 "all keygen members should attend"
             );
-            let keystore = match cfg.algorithm() {
-                svarog_grpc::Algorithm::DontCare => {
-                    throw!("", "Algorithm not specified");
-                }
-                svarog_grpc::Algorithm::Gg18Secp256k1 => {
+            let algo = cfg.algorithm.ifnone_()?;
+            let curve = algo.curve();
+            let scheme = algo.scheme();
+            let keystore = match (curve, scheme) {
+                (Curve::Secp256k1, Scheme::ElGamal) => {
                     keygen_mnem_gg18(chan, i, t, players, params.mnemonic)
                         .await
                         .catch_()?
                 }
-                svarog_grpc::Algorithm::FrostEd25519 => {
+                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
                     keygen_mnem_frost(chan, i, t, players, params.mnemonic)
                         .await
                         .catch_()?
+                }
+                _ => {
+                    let msg = format!("Combination of curve {:?} and scheme {:?}.", curve, scheme);
+                    throw!("NotImplemented", msg);
                 }
             };
             Ok(keystore)
@@ -137,15 +145,19 @@ impl MpcPeer for SvarogPeer {
             let i = keystore.i as usize;
             assert_throw!(signers.contains(&i), "signer not in the session");
             let tasks = params.tasks;
-            let sigs = match cfg.algorithm() {
-                svarog_grpc::Algorithm::DontCare => {
-                    throw!("", "Algorithm not specified");
-                }
-                svarog_grpc::Algorithm::Gg18Secp256k1 => {
+            let algo = cfg.algorithm.ifnone_()?;
+            let curve = algo.curve();
+            let scheme = algo.scheme();
+            let sigs = match (curve, scheme) {
+                (Curve::Secp256k1, Scheme::ElGamal) => {
                     sign_gg18(chan, keystore, signers, tasks).await.catch_()?
                 }
-                svarog_grpc::Algorithm::FrostEd25519 => {
+                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
                     sign_frost(chan, keystore, signers, tasks).await.catch_()?
+                }
+                _ => {
+                    let msg = format!("Combination of curve {:?} and scheme {:?}.", curve, scheme);
+                    throw!("NotImplemented", msg);
                 }
             };
             Ok(sigs)
@@ -173,7 +185,10 @@ impl MpcPeer for SvarogPeer {
             println!("reshare providers: {:?}", &providers);
             if let Some(keystore) = &keystore {
                 let i0 = keystore.i as usize;
-                println!("reshare provider: Player {}, ID {}", &params.member_name, i0);
+                println!(
+                    "reshare provider: Player {}, ID {}",
+                    &params.member_name, i0
+                );
                 assert_throw!(providers.contains(&i0), "provider not in the session");
             }
             let (i, consumers) = ses_arch(&params.member_name, &cfg.players_reshared);
@@ -185,19 +200,23 @@ impl MpcPeer for SvarogPeer {
                 consumers.len() == cfg.players_reshared.len(),
                 "all keygen members should attend"
             );
-            let keystore = match cfg.algorithm() {
-                svarog_grpc::Algorithm::DontCare => {
-                    throw!("", "Algorithm not specified");
-                }
-                svarog_grpc::Algorithm::Gg18Secp256k1 => {
+            let algo = cfg.algorithm.ifnone_()?;
+            let curve = algo.curve();
+            let scheme = algo.scheme();
+            let keystore = match (curve, scheme) {
+                (Curve::Secp256k1, Scheme::ElGamal) => {
                     reshare_gg18(chan, keystore, i, t, providers, consumers)
                         .await
                         .catch_()?
                 }
-                svarog_grpc::Algorithm::FrostEd25519 => {
+                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
                     reshare_frost(chan, keystore, i, t, providers, consumers)
                         .await
                         .catch_()?
+                }
+                _ => {
+                    let msg = format!("Combination of curve {:?} and scheme {:?}.", curve, scheme);
+                    throw!("NotImplemented", msg);
                 }
             };
             Ok(keystore)

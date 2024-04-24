@@ -3,7 +3,7 @@ use svarog_algo_flat::{
     frost::{KeystoreSchnorr, SignatureSchnorr},
     gg18::{KeystoreEcdsa, SignatureEcdsa},
 };
-use svarog_grpc::{Algorithm, CoefComs, Keystore, Signature};
+use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme, Signature};
 
 pub(crate) trait KeystoreConversion {
     fn to_proto(&self) -> Resultat<Keystore>;
@@ -29,7 +29,10 @@ impl KeystoreConversion for KeystoreEcdsa {
         keystore_pb.xpub = self.xpub().catch_()?;
         let misc = (self.paillier_key.clone(), self.paillier_n_dict.clone());
         let misc_bytes = serde_pickle::to_vec(&misc, Default::default()).catch_()?;
-        keystore_pb.algo = Algorithm::Gg18Secp256k1.into();
+        keystore_pb.algo = Some(Algorithm {
+            curve: Curve::Secp256k1.into(),
+            scheme: Scheme::ElGamal.into(),
+        });
         keystore_pb.misc = misc_bytes;
 
         Ok(keystore_pb)
@@ -40,7 +43,11 @@ impl KeystoreConversion for KeystoreEcdsa {
         Self: Sized,
     {
         use svarog_algo_flat::k256::{ProjectivePoint, Scalar};
-        assert_throw!(keystore_pb.algo() == Algorithm::Gg18Secp256k1);
+        let algo_gt = Some(Algorithm {
+            curve: Curve::Secp256k1.into(),
+            scheme: Scheme::ElGamal.into(),
+        });
+        assert_throw!(keystore_pb.algo == algo_gt);
 
         let mut keystore = Self::default();
         keystore.i = keystore_pb.i as usize;
@@ -76,7 +83,10 @@ impl KeystoreConversion for KeystoreSchnorr {
             keystore_pb.vss_scheme.insert(*i as u64, coef_com_vec_pb);
         }
         keystore_pb.xpub = self.xpub().catch_()?;
-        keystore_pb.algo = Algorithm::FrostEd25519.into();
+        keystore_pb.algo = Some(Algorithm {
+            curve: Curve::Ed25519Ristretto.into(),
+            scheme: Scheme::Schnorr.into(),
+        });
 
         Ok(keystore_pb)
     }
@@ -86,7 +96,11 @@ impl KeystoreConversion for KeystoreSchnorr {
         Self: Sized,
     {
         use svarog_algo_flat::curve25519_dalek::{ristretto::CompressedRistretto, Scalar};
-        assert_throw!(keystore_pb.algo() == Algorithm::FrostEd25519);
+        let algo_gt = Some(Algorithm {
+            curve: Curve::Ed25519Ristretto.into(),
+            scheme: Scheme::Schnorr.into(),
+        });
+        assert_throw!(keystore_pb.algo == algo_gt);
 
         let mut keystore = Self::default();
         keystore.i = keystore_pb.i as usize;

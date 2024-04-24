@@ -93,7 +93,9 @@ pub(crate) async fn keygen_mnem_frost(
     let sid = chan.sid().to_owned();
 
     let ret = if i > 0 {
-        let keystore = keygen_mnem_consumer(chan, players, t, i, sid).await.catch_()?;
+        let keystore = keygen_mnem_consumer(chan, players, t, i, sid)
+            .await
+            .catch_()?;
         let keystore = keystore.to_proto().catch_()?;
         Some(keystore)
     } else {

@@ -2,31 +2,41 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use erreur::*;
-use svarog_grpc::{
-    mpc_peer_client::MpcPeerClient, Algorithm, ParamsKeygen, ParamsReshare, ParamsSign,
-};
+use svarog_grpc::{mpc_peer_client::MpcPeerClient, ParamsKeygen, ParamsReshare, ParamsSign};
 use tonic::Request;
 
 use crate::mock_data::{
-    mock_keygen_config, mock_one_sign_task, mock_reshare_config, mock_sign_config, players1, players2, th1, th2
+    mock_keygen_config, mock_one_sign_task, mock_reshare_config, mock_sign_config, players1,
+    players2, th1, th2,
 };
 
 mod mock_data;
 const peer_url: &str = "http://127.0.0.1:9001";
 const sesman_url: &str = "http://127.0.0.1:9000";
-const algorithms: [Algorithm; 2] = [Algorithm::Gg18Secp256k1, Algorithm::FrostEd25519];
 
 /// 集成测试普通的keygen, sign
 #[tokio::main]
 async fn main() -> Resultat<()> {
     let mut peer = MpcPeerClient::connect(peer_url).await.catch_()?;
 
+    use svarog_grpc::{Algorithm, Curve, Scheme};
+    let algorithms = [
+        Algorithm {
+            curve: Curve::Secp256k1.into(),
+            scheme: Scheme::ElGamal.into(),
+        },
+        Algorithm {
+            curve: Curve::Ed25519Ristretto.into(),
+            scheme: Scheme::Schnorr.into(),
+        },
+    ];
+
     for algo in algorithms.iter().cloned() {
         println!(" ========== BEGIN Testing {:#?} ========== ", &algo);
         let keystores_old = {
             let mut cfg = mock_keygen_config(th1, &players1);
             cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = algo.into();
+            cfg.algorithm = Some(algo.clone());
             let tag = peer
                 .new_session(Request::new(cfg.clone()))
                 .await
@@ -65,7 +75,7 @@ async fn main() -> Resultat<()> {
             let (mut cfg, exclusive_consumers) =
                 mock_reshare_config(th1, &players1, th2, &players2);
             cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = algo.into();
+            cfg.algorithm = Some(algo.clone());
             '_print_providers: {
                 let mut providers = BTreeSet::new();
                 for (player, &att) in cfg.players.iter() {
@@ -146,7 +156,7 @@ async fn main() -> Resultat<()> {
         let signatures = {
             let mut cfg = mock_sign_config(th2, &players2);
             cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = algo.into();
+            cfg.algorithm = Some(algo.clone());
             '_print_signers: {
                 let mut signers = BTreeSet::new();
                 for (player, &att) in cfg.players.iter() {

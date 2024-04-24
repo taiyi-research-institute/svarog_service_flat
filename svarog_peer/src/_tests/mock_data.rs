@@ -99,7 +99,8 @@ pub fn mock_reshare_config(
         }
         res
     };
-    let mut remain_set: BTreeSet<String> = config.players_reshared.keys().map(|s| s.clone()).collect();
+    let mut remain_set: BTreeSet<String> =
+        config.players_reshared.keys().map(|s| s.clone()).collect();
     remain_set = remain_set.difference(&provider_set).cloned().collect();
     (config, remain_set)
 }
