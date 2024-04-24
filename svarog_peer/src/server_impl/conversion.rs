@@ -1,7 +1,7 @@
 use erreur::*;
 use svarog_algo_flat::{
-    schnorr_ristretto255::{KeystoreSchnorr, SignatureSchnorr},
     elgamal_secp256k1::{KeystoreElgamal, SignatureElgamal},
+    schnorr_ristretto255::{KeystoreSchnorr, SignatureSchnorr},
 };
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme, Signature};
 

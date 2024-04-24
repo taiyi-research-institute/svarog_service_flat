@@ -3,7 +3,9 @@ use std::str::FromStr;
 
 use erreur::*;
 use serde_json::{from_str, from_value, Value};
-use svarog_algo_flat::elgamal_secp256k1::{KeystoreElgamal, PaillierKey2048, ProjectivePoint, Scalar};
+use svarog_algo_flat::elgamal_secp256k1::{
+    KeystoreElgamal, PaillierKey2048, ProjectivePoint, Scalar,
+};
 use svarog_algo_flat::num_bigint::BigInt;
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme};
 
