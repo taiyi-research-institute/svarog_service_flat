@@ -1,7 +1,7 @@
 use erreur::*;
 use svarog_algo_flat::{
-    frost::{KeystoreSchnorr, SignatureSchnorr},
-    gg18::{KeystoreEcdsa, SignatureEcdsa},
+    schnorr_ristretto255::{KeystoreSchnorr, SignatureSchnorr},
+    elgamal_secp256k1::{KeystoreElgamal, SignatureEcdsa},
 };
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme, Signature};
 
@@ -12,7 +12,7 @@ pub(crate) trait KeystoreConversion {
         Self: Sized;
 }
 
-impl KeystoreConversion for KeystoreEcdsa {
+impl KeystoreConversion for KeystoreElgamal {
     fn to_proto(&self) -> Resultat<Keystore> {
         let mut keystore_pb = Keystore::default();
         keystore_pb.i = self.i as u64;

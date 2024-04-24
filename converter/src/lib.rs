@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use erreur::*;
 use serde_json::{from_str, from_value, Value};
-use svarog_algo_flat::gg18::{KeystoreEcdsa, PaillierKey2048, ProjectivePoint, Scalar};
+use svarog_algo_flat::elgamal_secp256k1::{KeystoreElgamal, PaillierKey2048, ProjectivePoint, Scalar};
 use svarog_algo_flat::num_bigint::BigInt;
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme};
 
@@ -34,11 +34,11 @@ pub fn convert(old_json: &str) -> Resultat<Keystore> {
     Ok(keystore_pb)
 }
 
-fn convert_inner(old_json: &str) -> Resultat<KeystoreEcdsa> {
+fn convert_inner(old_json: &str) -> Resultat<KeystoreElgamal> {
     let old: Value = from_str(old_json).catch_()?;
     let old = old.as_array().ifnone_()?;
 
-    let mut new = KeystoreEcdsa::default();
+    let mut new = KeystoreElgamal::default();
 
     new.i = {
         let id = old.get(2).ifnone_()?;
@@ -129,7 +129,7 @@ mod tests {
 
     use rand::{rngs::OsRng, seq::IteratorRandom};
     use sha2::{Digest, Sha256};
-    use svarog_algo_flat::gg18::{sign, SignatureEcdsa};
+    use svarog_algo_flat::elgamal_secp256k1::{sign, SignatureEcdsa};
     use svarog_grpc::SessionConfig;
     use svarog_sesman::SvarogChannel;
 
