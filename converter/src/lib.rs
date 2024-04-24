@@ -129,7 +129,7 @@ mod tests {
 
     use rand::{rngs::OsRng, seq::IteratorRandom};
     use sha2::{Digest, Sha256};
-    use svarog_algo_flat::elgamal_secp256k1::{sign, SignatureEcdsa};
+    use svarog_algo_flat::elgamal_secp256k1::{sign, SignatureElgamal};
     use svarog_grpc::SessionConfig;
     use svarog_sesman::SvarogChannel;
 
@@ -181,7 +181,7 @@ mod tests {
             let thread = tokio::spawn(future);
             sign_threads.push(thread);
         }
-        let mut sig: Option<SignatureEcdsa> = None;
+        let mut sig: Option<SignatureElgamal> = None;
         for thread in sign_threads {
             let _sig = thread.await.catch("", "Panic")?.catch("", "Exception")?;
             match sig {

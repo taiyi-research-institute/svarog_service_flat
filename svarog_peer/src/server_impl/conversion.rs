@@ -1,7 +1,7 @@
 use erreur::*;
 use svarog_algo_flat::{
     schnorr_ristretto255::{KeystoreSchnorr, SignatureSchnorr},
-    elgamal_secp256k1::{KeystoreElgamal, SignatureEcdsa},
+    elgamal_secp256k1::{KeystoreElgamal, SignatureElgamal},
 };
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme, Signature};
 
@@ -127,7 +127,7 @@ pub(crate) trait SignatureConversion {
     fn to_proto(&self) -> Resultat<Signature>;
 }
 
-impl SignatureConversion for SignatureEcdsa {
+impl SignatureConversion for SignatureElgamal {
     fn to_proto(&self) -> Resultat<Signature> {
         use svarog_algo_flat::k256::elliptic_curve::point::AffineCoordinates;
 
@@ -135,6 +135,10 @@ impl SignatureConversion for SignatureEcdsa {
         ret.r = self.R.to_affine().x().to_vec();
         ret.s = self.s.to_bytes().to_vec();
         ret.v = self.v as u32;
+        ret.algo = Some(Algorithm {
+            curve: Curve::Secp256k1.into(),
+            scheme: Scheme::ElGamal.into(),
+        });
         Ok(ret)
     }
 }
@@ -145,6 +149,10 @@ impl SignatureConversion for SignatureSchnorr {
         ret.r = self.R.compress().to_bytes().to_vec();
         ret.s = self.s.to_bytes().to_vec();
         ret.v = 0;
+        ret.algo = Some(Algorithm {
+            curve: Curve::Ed25519Ristretto.into(),
+            scheme: Scheme::Schnorr.into(),
+        });
         Ok(ret)
     }
 }
