@@ -23,7 +23,10 @@ pub struct SessionConfig {
     #[prost(map = "string, bool", tag = "5")]
     pub players: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
     #[prost(map = "string, bool", tag = "6")]
-    pub players_reshared: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
+    pub players_reshared: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        bool,
+    >,
     #[prost(uint64, tag = "7")]
     pub expire_at: u64,
 }
@@ -185,19 +188,8 @@ pub struct VecMessage {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Void {}
-#[derive(
-    serde::Serialize,
-    serde::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    ::prost::Enumeration,
-)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum Curve {
     Secp256k1 = 0,
@@ -224,19 +216,8 @@ impl Curve {
         }
     }
 }
-#[derive(
-    serde::Serialize,
-    serde::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    ::prost::Enumeration,
-)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum Scheme {
     /// ECDSA
@@ -267,8 +248,8 @@ impl Scheme {
 /// Generated client implementations.
 pub mod mpc_peer_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct MpcPeerClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -312,8 +293,9 @@ pub mod mpc_peer_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             MpcPeerClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -352,85 +334,105 @@ pub mod mpc_peer_client {
             &mut self,
             request: impl tonic::IntoRequest<super::SessionConfig>,
         ) -> std::result::Result<tonic::Response<super::SessionTag>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/svarog.MpcPeer/NewSession");
+            let path = http::uri::PathAndQuery::from_static(
+                "/svarog.MpcPeer/NewSession",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("svarog.MpcPeer", "NewSession"));
+            req.extensions_mut().insert(GrpcMethod::new("svarog.MpcPeer", "NewSession"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn keygen(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsKeygen>,
         ) -> std::result::Result<tonic::Response<super::Keystore>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/svarog.MpcPeer/Keygen");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("svarog.MpcPeer", "Keygen"));
+            req.extensions_mut().insert(GrpcMethod::new("svarog.MpcPeer", "Keygen"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn keygen_mnem(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsKeygenMnem>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+        ) -> std::result::Result<
+            tonic::Response<super::OptionalKeystore>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/svarog.MpcPeer/KeygenMnem");
+            let path = http::uri::PathAndQuery::from_static(
+                "/svarog.MpcPeer/KeygenMnem",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("svarog.MpcPeer", "KeygenMnem"));
+            req.extensions_mut().insert(GrpcMethod::new("svarog.MpcPeer", "KeygenMnem"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn sign(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsSign>,
         ) -> std::result::Result<tonic::Response<super::VecSignature>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/svarog.MpcPeer/Sign");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("svarog.MpcPeer", "Sign"));
+            req.extensions_mut().insert(GrpcMethod::new("svarog.MpcPeer", "Sign"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn reshare(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsReshare>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+        ) -> std::result::Result<
+            tonic::Response<super::OptionalKeystore>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/svarog.MpcPeer/Reshare");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("svarog.MpcPeer", "Reshare"));
+            req.extensions_mut().insert(GrpcMethod::new("svarog.MpcPeer", "Reshare"));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -438,8 +440,8 @@ pub mod mpc_peer_client {
 /// Generated client implementations.
 pub mod mpc_session_manager_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct MpcSessionManagerClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -483,8 +485,9 @@ pub mod mpc_session_manager_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             MpcSessionManagerClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -523,14 +526,19 @@ pub mod mpc_session_manager_client {
             &mut self,
             request: impl tonic::IntoRequest<super::SessionConfig>,
         ) -> std::result::Result<tonic::Response<super::SessionTag>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/svarog.MpcSessionManager/NewSession");
+            let path = http::uri::PathAndQuery::from_static(
+                "/svarog.MpcSessionManager/NewSession",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("svarog.MpcSessionManager", "NewSession"));
@@ -540,34 +548,41 @@ pub mod mpc_session_manager_client {
             &mut self,
             request: impl tonic::IntoRequest<super::SessionTag>,
         ) -> std::result::Result<tonic::Response<super::SessionConfig>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/svarog.MpcSessionManager/GetSessionConfig");
+            let path = http::uri::PathAndQuery::from_static(
+                "/svarog.MpcSessionManager/GetSessionConfig",
+            );
             let mut req = request.into_request();
-            req.extensions_mut().insert(GrpcMethod::new(
-                "svarog.MpcSessionManager",
-                "GetSessionConfig",
-            ));
+            req.extensions_mut()
+                .insert(GrpcMethod::new("svarog.MpcSessionManager", "GetSessionConfig"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn inbox(
             &mut self,
             request: impl tonic::IntoRequest<super::VecMessage>,
         ) -> std::result::Result<tonic::Response<super::Void>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/svarog.MpcSessionManager/Inbox");
+            let path = http::uri::PathAndQuery::from_static(
+                "/svarog.MpcSessionManager/Inbox",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("svarog.MpcSessionManager", "Inbox"));
@@ -577,14 +592,19 @@ pub mod mpc_session_manager_client {
             &mut self,
             request: impl tonic::IntoRequest<super::VecMessage>,
         ) -> std::result::Result<tonic::Response<super::VecMessage>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/svarog.MpcSessionManager/Outbox");
+            let path = http::uri::PathAndQuery::from_static(
+                "/svarog.MpcSessionManager/Outbox",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("svarog.MpcSessionManager", "Outbox"));
@@ -610,7 +630,10 @@ pub mod mpc_peer_server {
         async fn keygen_mnem(
             &self,
             request: tonic::Request<super::ParamsKeygenMnem>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::OptionalKeystore>,
+            tonic::Status,
+        >;
         async fn sign(
             &self,
             request: tonic::Request<super::ParamsSign>,
@@ -618,7 +641,10 @@ pub mod mpc_peer_server {
         async fn reshare(
             &self,
             request: tonic::Request<super::ParamsReshare>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::OptionalKeystore>,
+            tonic::Status,
+        >;
     }
     #[derive(Debug)]
     pub struct MpcPeerServer<T: MpcPeer> {
@@ -643,7 +669,10 @@ pub mod mpc_peer_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -699,16 +728,21 @@ pub mod mpc_peer_server {
                 "/svarog.MpcPeer/NewSession" => {
                     #[allow(non_camel_case_types)]
                     struct NewSessionSvc<T: MpcPeer>(pub Arc<T>);
-                    impl<T: MpcPeer> tonic::server::UnaryService<super::SessionConfig> for NewSessionSvc<T> {
+                    impl<T: MpcPeer> tonic::server::UnaryService<super::SessionConfig>
+                    for NewSessionSvc<T> {
                         type Response = super::SessionTag;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SessionConfig>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut =
-                                async move { <T as MpcPeer>::new_session(&inner, request).await };
+                            let fut = async move {
+                                <T as MpcPeer>::new_session(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -738,15 +772,21 @@ pub mod mpc_peer_server {
                 "/svarog.MpcPeer/Keygen" => {
                     #[allow(non_camel_case_types)]
                     struct KeygenSvc<T: MpcPeer>(pub Arc<T>);
-                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsKeygen> for KeygenSvc<T> {
+                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsKeygen>
+                    for KeygenSvc<T> {
                         type Response = super::Keystore;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ParamsKeygen>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { <T as MpcPeer>::keygen(&inner, request).await };
+                            let fut = async move {
+                                <T as MpcPeer>::keygen(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -776,16 +816,21 @@ pub mod mpc_peer_server {
                 "/svarog.MpcPeer/KeygenMnem" => {
                     #[allow(non_camel_case_types)]
                     struct KeygenMnemSvc<T: MpcPeer>(pub Arc<T>);
-                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsKeygenMnem> for KeygenMnemSvc<T> {
+                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsKeygenMnem>
+                    for KeygenMnemSvc<T> {
                         type Response = super::OptionalKeystore;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ParamsKeygenMnem>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut =
-                                async move { <T as MpcPeer>::keygen_mnem(&inner, request).await };
+                            let fut = async move {
+                                <T as MpcPeer>::keygen_mnem(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -815,15 +860,21 @@ pub mod mpc_peer_server {
                 "/svarog.MpcPeer/Sign" => {
                     #[allow(non_camel_case_types)]
                     struct SignSvc<T: MpcPeer>(pub Arc<T>);
-                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsSign> for SignSvc<T> {
+                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsSign>
+                    for SignSvc<T> {
                         type Response = super::VecSignature;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ParamsSign>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { <T as MpcPeer>::sign(&inner, request).await };
+                            let fut = async move {
+                                <T as MpcPeer>::sign(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -853,15 +904,21 @@ pub mod mpc_peer_server {
                 "/svarog.MpcPeer/Reshare" => {
                     #[allow(non_camel_case_types)]
                     struct ReshareSvc<T: MpcPeer>(pub Arc<T>);
-                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsReshare> for ReshareSvc<T> {
+                    impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsReshare>
+                    for ReshareSvc<T> {
                         type Response = super::OptionalKeystore;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ParamsReshare>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { <T as MpcPeer>::reshare(&inner, request).await };
+                            let fut = async move {
+                                <T as MpcPeer>::reshare(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -888,14 +945,18 @@ pub mod mpc_peer_server {
                     };
                     Box::pin(fut)
                 }
-                _ => Box::pin(async move {
-                    Ok(http::Response::builder()
-                        .status(200)
-                        .header("grpc-status", "12")
-                        .header("content-type", "application/grpc")
-                        .body(empty_body())
-                        .unwrap())
-                }),
+                _ => {
+                    Box::pin(async move {
+                        Ok(
+                            http::Response::builder()
+                                .status(200)
+                                .header("grpc-status", "12")
+                                .header("content-type", "application/grpc")
+                                .body(empty_body())
+                                .unwrap(),
+                        )
+                    })
+                }
             }
         }
     }
@@ -972,7 +1033,10 @@ pub mod mpc_session_manager_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -1028,9 +1092,15 @@ pub mod mpc_session_manager_server {
                 "/svarog.MpcSessionManager/NewSession" => {
                     #[allow(non_camel_case_types)]
                     struct NewSessionSvc<T: MpcSessionManager>(pub Arc<T>);
-                    impl<T: MpcSessionManager> tonic::server::UnaryService<super::SessionConfig> for NewSessionSvc<T> {
+                    impl<
+                        T: MpcSessionManager,
+                    > tonic::server::UnaryService<super::SessionConfig>
+                    for NewSessionSvc<T> {
                         type Response = super::SessionTag;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SessionConfig>,
@@ -1068,18 +1138,26 @@ pub mod mpc_session_manager_server {
                 "/svarog.MpcSessionManager/GetSessionConfig" => {
                     #[allow(non_camel_case_types)]
                     struct GetSessionConfigSvc<T: MpcSessionManager>(pub Arc<T>);
-                    impl<T: MpcSessionManager> tonic::server::UnaryService<super::SessionTag>
-                        for GetSessionConfigSvc<T>
-                    {
+                    impl<
+                        T: MpcSessionManager,
+                    > tonic::server::UnaryService<super::SessionTag>
+                    for GetSessionConfigSvc<T> {
                         type Response = super::SessionConfig;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SessionTag>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as MpcSessionManager>::get_session_config(&inner, request).await
+                                <T as MpcSessionManager>::get_session_config(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1110,9 +1188,14 @@ pub mod mpc_session_manager_server {
                 "/svarog.MpcSessionManager/Inbox" => {
                     #[allow(non_camel_case_types)]
                     struct InboxSvc<T: MpcSessionManager>(pub Arc<T>);
-                    impl<T: MpcSessionManager> tonic::server::UnaryService<super::VecMessage> for InboxSvc<T> {
+                    impl<
+                        T: MpcSessionManager,
+                    > tonic::server::UnaryService<super::VecMessage> for InboxSvc<T> {
                         type Response = super::Void;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::VecMessage>,
@@ -1150,9 +1233,14 @@ pub mod mpc_session_manager_server {
                 "/svarog.MpcSessionManager/Outbox" => {
                     #[allow(non_camel_case_types)]
                     struct OutboxSvc<T: MpcSessionManager>(pub Arc<T>);
-                    impl<T: MpcSessionManager> tonic::server::UnaryService<super::VecMessage> for OutboxSvc<T> {
+                    impl<
+                        T: MpcSessionManager,
+                    > tonic::server::UnaryService<super::VecMessage> for OutboxSvc<T> {
                         type Response = super::VecMessage;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::VecMessage>,
@@ -1187,14 +1275,18 @@ pub mod mpc_session_manager_server {
                     };
                     Box::pin(fut)
                 }
-                _ => Box::pin(async move {
-                    Ok(http::Response::builder()
-                        .status(200)
-                        .header("grpc-status", "12")
-                        .header("content-type", "application/grpc")
-                        .body(empty_body())
-                        .unwrap())
-                }),
+                _ => {
+                    Box::pin(async move {
+                        Ok(
+                            http::Response::builder()
+                                .status(200)
+                                .header("grpc-status", "12")
+                                .header("content-type", "application/grpc")
+                                .body(empty_body())
+                                .unwrap(),
+                        )
+                    })
+                }
             }
         }
     }
@@ -1220,7 +1312,8 @@ pub mod mpc_session_manager_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: MpcSessionManager> tonic::server::NamedService for MpcSessionManagerServer<T> {
+    impl<T: MpcSessionManager> tonic::server::NamedService
+    for MpcSessionManagerServer<T> {
         const NAME: &'static str = "svarog.MpcSessionManager";
     }
 }
