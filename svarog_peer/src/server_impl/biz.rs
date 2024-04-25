@@ -15,7 +15,7 @@ pub(crate) async fn keygen_gg18(
     t: usize,
     players: BTreeSet<usize>,
 ) -> Resultat<Keystore> {
-    use svarog_algo_flat::elgamal_secp256k1::keygen;
+    use svarog_algo::elgamal_secp256k1::keygen;
 
     let keystore = keygen(chan, players, t, i, None).await.catch_()?;
     let keystore = keystore.to_proto().catch_()?;
@@ -28,7 +28,7 @@ pub(crate) async fn keygen_frost(
     t: usize,
     players: BTreeSet<usize>,
 ) -> Resultat<Keystore> {
-    use svarog_algo_flat::schnorr_ristretto255::keygen;
+    use svarog_algo::schnorr_ristretto255::keygen;
 
     let sid = chan.sid().to_owned();
     let keystore = keygen(chan, players, t, i, None, sid).await.catch_()?;
@@ -43,7 +43,7 @@ pub(crate) async fn keygen_mnem_gg18(
     players: BTreeSet<usize>,
     mnem: Option<Mnemonic>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo_flat::elgamal_secp256k1::{keygen_mnem_consumer, keygen_mnem_provider};
+    use svarog_algo::elgamal_secp256k1::{keygen_mnem_consumer, keygen_mnem_provider};
 
     let provider_thread = if let Some(mnem) = mnem {
         let future: _ =
@@ -79,7 +79,7 @@ pub(crate) async fn keygen_mnem_frost(
     players: BTreeSet<usize>,
     mnem: Option<Mnemonic>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo_flat::schnorr_ristretto255::{keygen_mnem_consumer, keygen_mnem_provider};
+    use svarog_algo::schnorr_ristretto255::{keygen_mnem_consumer, keygen_mnem_provider};
 
     let provider_thread = if let Some(mnem) = mnem {
         let future: _ =
@@ -118,7 +118,7 @@ pub(crate) async fn sign_gg18(
     signers: BTreeSet<usize>,
     tasks: Vec<SignTask>,
 ) -> Resultat<Vec<Signature>> {
-    use svarog_algo_flat::elgamal_secp256k1::{sign, sign_batch, KeystoreElgamal};
+    use svarog_algo::elgamal_secp256k1::{sign, sign_batch, KeystoreElgamal};
 
     assert_throw!(tasks.len() >= 1);
     assert_throw!(signers.len() >= 1);
@@ -152,7 +152,7 @@ pub(crate) async fn sign_frost(
     signers: BTreeSet<usize>,
     tasks: Vec<SignTask>,
 ) -> Resultat<Vec<Signature>> {
-    use svarog_algo_flat::schnorr_ristretto255::{sign, sign_batch, KeystoreSchnorr};
+    use svarog_algo::schnorr_ristretto255::{sign, sign_batch, KeystoreSchnorr};
 
     assert_throw!(tasks.len() >= 1);
     assert_throw!(signers.len() >= 1);
@@ -188,7 +188,7 @@ pub(crate) async fn reshare_gg18(
     providers: BTreeSet<usize>,
     consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo_flat::elgamal_secp256k1::{
+    use svarog_algo::elgamal_secp256k1::{
         reshare_consumer, reshare_provider, KeystoreElgamal,
     };
     let provider_thread = if let Some(keystore) = keystore {
@@ -230,7 +230,7 @@ pub(crate) async fn reshare_frost(
     providers: BTreeSet<usize>,
     consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo_flat::schnorr_ristretto255::{
+    use svarog_algo::schnorr_ristretto255::{
         reshare_consumer, reshare_provider, KeystoreSchnorr,
     };
 

@@ -36,6 +36,6 @@ tokio = { workspace = true }
 tonic = { workspace = true }
 uuid = { workspace = true }
 
-svarog_algo_flat = { workspace = true }
+svarog_algo = { workspace = true }
 svarog_grpc = { workspace = true }
 svarog_sesman = { workspace = true }

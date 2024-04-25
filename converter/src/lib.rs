@@ -3,10 +3,8 @@ use std::str::FromStr;
 
 use erreur::*;
 use serde_json::{from_str, from_value, Value};
-use svarog_algo_flat::elgamal_secp256k1::{
-    KeystoreElgamal, PaillierKey2048, ProjectivePoint, Scalar,
-};
-use svarog_algo_flat::num_bigint::BigInt;
+use svarog_algo::elgamal_secp256k1::{KeystoreElgamal, PaillierKey2048, ProjectivePoint, Scalar};
+use svarog_algo::num_bigint::BigInt;
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme};
 
 pub fn convert(old_json: &str) -> Resultat<Keystore> {
@@ -131,7 +129,7 @@ mod tests {
 
     use rand::{rngs::OsRng, seq::IteratorRandom};
     use sha2::{Digest, Sha256};
-    use svarog_algo_flat::elgamal_secp256k1::{sign, SignatureElgamal};
+    use svarog_algo::elgamal_secp256k1::{sign, SignatureElgamal};
     use svarog_grpc::SessionConfig;
     use svarog_sesman::SvarogChannel;
 

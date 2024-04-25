@@ -1,5 +1,5 @@
 use erreur::*;
-use svarog_algo_flat::{
+use svarog_algo::{
     elgamal_secp256k1::{KeystoreElgamal, SignatureElgamal},
     schnorr_ristretto255::{KeystoreSchnorr, SignatureSchnorr},
 };
@@ -42,7 +42,7 @@ impl KeystoreConversion for KeystoreElgamal {
     where
         Self: Sized,
     {
-        use svarog_algo_flat::k256::{ProjectivePoint, Scalar};
+        use svarog_algo::k256::{ProjectivePoint, Scalar};
         let algo_gt = Some(Algorithm {
             curve: Curve::Secp256k1.into(),
             scheme: Scheme::ElGamal.into(),
@@ -95,7 +95,7 @@ impl KeystoreConversion for KeystoreSchnorr {
     where
         Self: Sized,
     {
-        use svarog_algo_flat::curve25519_dalek::{ristretto::CompressedRistretto, Scalar};
+        use svarog_algo::curve25519_dalek::{ristretto::CompressedRistretto, Scalar};
         let algo_gt = Some(Algorithm {
             curve: Curve::Ed25519Ristretto.into(),
             scheme: Scheme::Schnorr.into(),
@@ -129,7 +129,7 @@ pub(crate) trait SignatureConversion {
 
 impl SignatureConversion for SignatureElgamal {
     fn to_proto(&self) -> Resultat<Signature> {
-        use svarog_algo_flat::k256::elliptic_curve::point::AffineCoordinates;
+        use svarog_algo::k256::elliptic_curve::point::AffineCoordinates;
 
         let mut ret = Signature::default();
         ret.r = self.R.to_affine().x().to_vec();
