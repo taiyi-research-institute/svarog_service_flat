@@ -188,9 +188,7 @@ pub(crate) async fn reshare_gg18(
     providers: BTreeSet<usize>,
     consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo::elgamal_secp256k1::{
-        reshare_consumer, reshare_provider, KeystoreElgamal,
-    };
+    use svarog_algo::elgamal_secp256k1::{reshare_consumer, reshare_provider, KeystoreElgamal};
     let provider_thread = if let Some(keystore) = keystore {
         let keystore = KeystoreElgamal::from_proto(&keystore).catch_()?;
         let future: _ =
@@ -230,9 +228,7 @@ pub(crate) async fn reshare_frost(
     providers: BTreeSet<usize>,
     consumers: BTreeSet<usize>,
 ) -> Resultat<Option<Keystore>> {
-    use svarog_algo::schnorr_ristretto255::{
-        reshare_consumer, reshare_provider, KeystoreSchnorr,
-    };
+    use svarog_algo::schnorr_ristretto255::{reshare_consumer, reshare_provider, KeystoreSchnorr};
 
     let provider_thread = if let Some(keystore) = keystore {
         let keystore = KeystoreSchnorr::from_proto(&keystore).catch_()?;
