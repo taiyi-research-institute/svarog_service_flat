@@ -12,6 +12,7 @@ proto:
 		-r $(shell pwd)/svarog_grpc/src
 
 build: kill_tmux proto
+	cargo fmt
 	cargo build --release
 	mkdir -p out
 	cp target/release/svarog_sesman out/svarog_sesman

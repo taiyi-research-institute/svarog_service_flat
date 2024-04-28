@@ -32,7 +32,11 @@ async fn main() -> Resultat<()> {
     ];
 
     for algo in algorithms.iter().cloned() {
-        println!(" ========== BEGIN Testing {:#?} ========== ", &algo);
+        println!(
+            " ========== BEGIN Testing {:?}-{:?} ========== ",
+            algo.scheme(),
+            algo.curve()
+        );
         let keystores = {
             let mut cfg = mock_keygen_config(th1, &players1);
             cfg.sesman_url = sesman_url.to_string();
@@ -56,7 +60,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.keygen_mnem(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player.clone(), thread);
-                println!("BEGIN {:#?} keygen -- {}", &algo, player);
+                println!("BEGIN keygen -- {}", player);
             }
             '_mnem_provider: {
                 let req = Request::new(ParamsKeygenMnem {
@@ -70,7 +74,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.keygen_mnem(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert("".to_owned(), thread);
-                println!("BEGIN {:#?} keygen -- {}", &algo, "__mnem_provider__");
+                println!("BEGIN keygen -- {}", "__mnem_provider__");
             }
             let mut keystores = BTreeMap::new();
             for (player, thread) in threads.iter_mut() {
@@ -82,7 +86,7 @@ async fn main() -> Resultat<()> {
                 if let Some(resp) = resp.value {
                     keystores.insert(player.clone(), resp);
                 }
-                println!("END {:#?} keygen -- {}", &algo, player);
+                println!("END keygen -- {}", player);
             }
             keystores
         };
@@ -124,7 +128,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.sign(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player, thread);
-                println!("BEGIN {:#?} sign -- {}", &algo, player);
+                println!("BEGIN sign -- {}", player);
             }
             let mut signatures = BTreeMap::new();
             for (&player, thread) in threads.iter_mut() {
@@ -134,7 +138,7 @@ async fn main() -> Resultat<()> {
                     .catch("Exception", "")?
                     .into_inner();
                 signatures.insert(player.clone(), resp);
-                println!("END {:#?} sign -- {}", &algo, player);
+                println!("END sign -- {}", player);
             }
             signatures
         };
@@ -144,7 +148,11 @@ async fn main() -> Resultat<()> {
         for sig in sig_it {
             assert_throw!(sig == sig0);
         }
-        println!(" ========== END Testing {:#?} ========== ", &algo);
+        println!(
+            " ========== END Testing {:?}-{:?} ========== ",
+            algo.scheme(),
+            algo.curve()
+        );
     }
 
     Ok(())

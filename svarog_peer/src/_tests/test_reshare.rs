@@ -32,7 +32,11 @@ async fn main() -> Resultat<()> {
     ];
 
     for algo in algorithms.iter().cloned() {
-        println!(" ========== BEGIN Testing {:#?} ========== ", &algo);
+        println!(
+            " ========== BEGIN Testing {:?}-{:?} ========== ",
+            algo.scheme(),
+            algo.curve()
+        );
         let keystores_old = {
             let mut cfg = mock_keygen_config(th1, &players1);
             cfg.sesman_url = sesman_url.to_string();
@@ -55,7 +59,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.keygen(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player.clone(), thread);
-                println!("BEGIN {:#?} dummy keygen -- {}", &algo, player);
+                println!("BEGIN dummy keygen -- {}", player);
             }
             let mut keystores = BTreeMap::new();
             for (player, thread) in threads.iter_mut() {
@@ -65,11 +69,10 @@ async fn main() -> Resultat<()> {
                     .catch("Exception", "")?
                     .into_inner();
                 keystores.insert(player.clone(), resp);
-                println!("END {:#?} dummy keygen -- {}", &algo, player);
+                println!("END dummy keygen -- {}", player);
             }
             keystores
         };
-        println!("END {:#?} dummy keygen", &algo);
 
         let keystores = {
             let (mut cfg, exclusive_consumers) =
@@ -118,7 +121,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.reshare(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player.clone(), thread);
-                println!("BEGIN {:#?} reshare -- {}", &algo, player);
+                println!("BEGIN reshare -- {}", player);
             }
 
             // spawn threads for reshare consumers not in providers
@@ -134,10 +137,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.reshare(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player.clone(), thread);
-                println!(
-                    "BEGIN {:#?} reshare -- {} (exclusive consumer)",
-                    &algo, player
-                );
+                println!("BEGIN reshare -- {} (exclusive consumer)", player);
             }
 
             let mut keystores = BTreeMap::new();
@@ -148,7 +148,7 @@ async fn main() -> Resultat<()> {
                     .catch("Exception", "")?
                     .into_inner();
                 keystores.insert(player.clone(), resp);
-                println!("END {:#?} reshare -- {}", &algo, player);
+                println!("END reshare -- {}", player);
             }
             keystores
         };
@@ -190,7 +190,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.sign(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player, thread);
-                println!("BEGIN {:#?} sign -- {}", &algo, player);
+                println!("BEGIN sign -- {}", player);
             }
             let mut signatures = BTreeMap::new();
             for (&player, thread) in threads.iter_mut() {
@@ -200,7 +200,7 @@ async fn main() -> Resultat<()> {
                     .catch("Exception", "")?
                     .into_inner();
                 signatures.insert(player.clone(), resp);
-                println!("END {:#?} sign -- {}", &algo, player);
+                println!("END sign -- {}", player);
             }
             signatures
         };
@@ -210,7 +210,11 @@ async fn main() -> Resultat<()> {
         for sig in sig_it {
             assert_throw!(sig == sig0);
         }
-        println!(" ========== END Testing {:#?} ========== ", &algo);
+        println!(
+            " ========== END Testing {:?}-{:?} ========== ",
+            algo.scheme(),
+            algo.curve()
+        );
     }
 
     Ok(())

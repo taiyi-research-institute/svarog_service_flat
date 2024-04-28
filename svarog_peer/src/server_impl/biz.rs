@@ -118,19 +118,13 @@ pub(crate) async fn sign_gg18(
     signers: BTreeSet<usize>,
     tasks: Vec<SignTask>,
 ) -> Resultat<Vec<Signature>> {
-    use svarog_algo::elgamal_secp256k1::{sign, sign_batch, KeystoreElgamal};
+    use svarog_algo::elgamal_secp256k1::{sign_batch, KeystoreElgamal};
 
     assert_throw!(tasks.len() >= 1);
     assert_throw!(signers.len() >= 1);
     let keystore = KeystoreElgamal::from_proto(&keystore).catch_()?;
     assert_throw!(signers.contains(&keystore.i));
-    let res = if tasks.len() == 1 {
-        let task = tasks.into_iter().next().unwrap();
-        let (dpath, hmsg) = (task.derivation_path, task.tx_hash);
-        let sig = sign(chan, signers, keystore, hmsg, dpath).await.catch_()?;
-        let sig = sig.to_proto().catch_()?;
-        vec![sig]
-    } else {
+    let res = {
         let tasks = tasks
             .into_iter()
             .map(|task| (task.tx_hash, task.derivation_path))
@@ -152,19 +146,13 @@ pub(crate) async fn sign_frost(
     signers: BTreeSet<usize>,
     tasks: Vec<SignTask>,
 ) -> Resultat<Vec<Signature>> {
-    use svarog_algo::schnorr_ristretto255::{sign, sign_batch, KeystoreSchnorr};
+    use svarog_algo::schnorr_ristretto255::{sign_batch, KeystoreSchnorr};
 
     assert_throw!(tasks.len() >= 1);
     assert_throw!(signers.len() >= 1);
     let keystore = KeystoreSchnorr::from_proto(&keystore).catch_()?;
     assert_throw!(signers.contains(&keystore.i));
-    let res = if tasks.len() == 1 {
-        let task = tasks.into_iter().next().unwrap();
-        let (dpath, hmsg) = (task.derivation_path, task.tx_hash);
-        let sig = sign(chan, signers, keystore, hmsg, dpath).await.catch_()?;
-        let sig = sig.to_proto().catch_()?;
-        vec![sig]
-    } else {
+    let res = {
         let tasks = tasks
             .into_iter()
             .map(|task| (task.tx_hash, task.derivation_path))

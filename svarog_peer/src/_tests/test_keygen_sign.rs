@@ -30,7 +30,11 @@ async fn main() -> Resultat<()> {
     ];
 
     for algo in algorithms.iter().cloned() {
-        println!(" ========== BEGIN Testing {:#?} ========== ", &algo);
+        println!(
+            " ========== BEGIN Testing {:?}-{:?} ========== ",
+            algo.scheme(),
+            algo.curve()
+        );
         let keystores = {
             let mut cfg = mock_keygen_config(th1, &players1);
             cfg.sesman_url = sesman_url.to_string();
@@ -53,7 +57,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.keygen(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player.clone(), thread);
-                println!("BEGIN {:#?} keygen -- {}", &algo, player);
+                println!("BEGIN keygen -- {}", player);
             }
             let mut keystores = BTreeMap::new();
             for (player, thread) in threads.iter_mut() {
@@ -63,11 +67,10 @@ async fn main() -> Resultat<()> {
                     .catch("Exception", "")?
                     .into_inner();
                 keystores.insert(player.clone(), resp);
-                println!("END {:#?} keygen -- {}", &algo, player);
+                println!("END keygen -- {}", player);
             }
             keystores
         };
-        println!("END {:#?} keygen", &algo);
 
         let signatures = {
             let mut cfg = mock_sign_config(th1, &players1);
@@ -106,7 +109,7 @@ async fn main() -> Resultat<()> {
                 let future = async move { peer.sign(req).await };
                 let thread = tokio::spawn(future);
                 threads.insert(player, thread);
-                println!("BEGIN {:#?} sign -- {}", &algo, player);
+                println!("BEGIN sign -- {}", player);
             }
             let mut signatures = BTreeMap::new();
             for (&player, thread) in threads.iter_mut() {
@@ -116,7 +119,7 @@ async fn main() -> Resultat<()> {
                     .catch("Exception", "")?
                     .into_inner();
                 signatures.insert(player.clone(), resp);
-                println!("END {:#?} sign -- {}", &algo, player);
+                println!("END sign -- {}", player);
             }
             signatures
         };
@@ -126,7 +129,11 @@ async fn main() -> Resultat<()> {
         for sig in sig_it {
             assert_throw!(sig == sig0);
         }
-        println!(" ========== END Testing {:#?} ========== ", &algo);
+        println!(
+            " ========== END Testing {:?}-{:?} ========== ",
+            algo.scheme(),
+            algo.curve()
+        );
     }
 
     Ok(())
