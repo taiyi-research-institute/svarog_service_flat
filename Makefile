@@ -11,7 +11,7 @@ proto:
 		-p $(shell pwd) \
 		-r $(shell pwd)/svarog_grpc/src
 
-build: kill_tmux proto
+build: kill_tmux
 	cargo fmt
 	cargo build --release
 	mkdir -p out

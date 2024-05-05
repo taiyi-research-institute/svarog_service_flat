@@ -26,7 +26,7 @@ async fn main() -> Resultat<()> {
             scheme: Scheme::ElGamal.into(),
         },
         Algorithm {
-            curve: Curve::Ed25519Ristretto.into(),
+            curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),
         },
     ];

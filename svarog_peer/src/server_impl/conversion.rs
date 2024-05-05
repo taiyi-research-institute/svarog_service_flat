@@ -1,7 +1,7 @@
 use erreur::*;
 use svarog_algo::{
     elgamal_secp256k1::{KeystoreElgamal, SignatureElgamal},
-    schnorr_ristretto255::{KeystoreSchnorr, SignatureSchnorr},
+    schnorr_ed25519::{KeystoreSchnorr, SignatureSchnorr},
 };
 use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme, Signature};
 
@@ -84,7 +84,7 @@ impl KeystoreConversion for KeystoreSchnorr {
         }
         keystore_pb.xpub = self.xpub().catch_()?;
         keystore_pb.algo = Some(Algorithm {
-            curve: Curve::Ed25519Ristretto.into(),
+            curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),
         });
 
@@ -95,9 +95,9 @@ impl KeystoreConversion for KeystoreSchnorr {
     where
         Self: Sized,
     {
-        use svarog_algo::curve25519_dalek::{ristretto::CompressedRistretto, Scalar};
+        use svarog_algo::curve25519_dalek::{edwards::CompressedEdwardsY, Scalar};
         let algo_gt = Some(Algorithm {
-            curve: Curve::Ed25519Ristretto.into(),
+            curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),
         });
         assert_throw!(keystore_pb.algo == algo_gt);
@@ -112,7 +112,7 @@ impl KeystoreConversion for KeystoreSchnorr {
             let mut coef_com_vec = Vec::new();
             for coef_com in coef_com_vec_pb.values.iter() {
                 assert_throw!(coef_com.len() == 32);
-                let coef_com = CompressedRistretto::from_slice(&coef_com).catch_()?;
+                let coef_com = CompressedEdwardsY::from_slice(&coef_com).catch_()?;
                 let coef_com = coef_com.decompress().ifnone_()?;
                 coef_com_vec.push(coef_com);
             }
@@ -150,7 +150,7 @@ impl SignatureConversion for SignatureSchnorr {
         ret.s = self.s.to_bytes().to_vec();
         ret.v = 0;
         ret.algo = Some(Algorithm {
-            curve: Curve::Ed25519Ristretto.into(),
+            curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),
         });
         Ok(ret)

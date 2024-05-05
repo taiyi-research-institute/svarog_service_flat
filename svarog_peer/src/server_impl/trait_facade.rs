@@ -73,7 +73,7 @@ impl MpcPeer for SvarogPeer {
                 (Curve::Secp256k1, Scheme::ElGamal) => {
                     keygen_gg18(chan, i, t, players).await.catch_()?
                 }
-                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
+                (Curve::Ed25519, Scheme::Schnorr) => {
                     keygen_frost(chan, i, t, players).await.catch_()?
                 }
                 _ => {
@@ -114,7 +114,7 @@ impl MpcPeer for SvarogPeer {
                         .await
                         .catch_()?
                 }
-                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
+                (Curve::Ed25519, Scheme::Schnorr) => {
                     keygen_mnem_frost(chan, i, t, players, params.mnemonic)
                         .await
                         .catch_()?
@@ -152,7 +152,7 @@ impl MpcPeer for SvarogPeer {
                 (Curve::Secp256k1, Scheme::ElGamal) => {
                     sign_gg18(chan, keystore, signers, tasks).await.catch_()?
                 }
-                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
+                (Curve::Ed25519, Scheme::Schnorr) => {
                     sign_frost(chan, keystore, signers, tasks).await.catch_()?
                 }
                 _ => {
@@ -209,7 +209,7 @@ impl MpcPeer for SvarogPeer {
                         .await
                         .catch_()?
                 }
-                (Curve::Ed25519Ristretto, Scheme::Schnorr) => {
+                (Curve::Ed25519, Scheme::Schnorr) => {
                     reshare_frost(chan, keystore, i, t, providers, consumers)
                         .await
                         .catch_()?

@@ -201,8 +201,8 @@ pub struct Void {}
 #[repr(i32)]
 pub enum Curve {
     Secp256k1 = 0,
-    /// ed25519 = 1;
-    Ed25519Ristretto = 2,
+    /// ed25519_ristretto = 2;
+    Ed25519 = 1,
 }
 impl Curve {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -212,14 +212,14 @@ impl Curve {
     pub fn as_str_name(&self) -> &'static str {
         match self {
             Curve::Secp256k1 => "secp256k1",
-            Curve::Ed25519Ristretto => "ed25519_ristretto",
+            Curve::Ed25519 => "ed25519",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
             "secp256k1" => Some(Self::Secp256k1),
-            "ed25519_ristretto" => Some(Self::Ed25519Ristretto),
+            "ed25519" => Some(Self::Ed25519),
             _ => None,
         }
     }
