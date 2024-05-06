@@ -53,7 +53,8 @@
 # MpcPeer::Sign
 
 (1) 收集 `players` 名单. 需要注意:
-* `players` 的键必须曾经参与同一场 Keygen , 或 KeygenMnem , 或作为 Reshare consumer; 必须恰好包含前述人员, 不能增删改.
+* `players` 的键必须曾经参与同一场 Keygen , 或 KeygenMnem; 或曾参与同一场 Reshare 的 consumer 角色. 
+* `players` 的键必须恰好包含前述人员, 不能增删改.
 * `players` 的值决定了是否出席本场会话. 出席人数应不小于相应的门限, 否则签名将失败.
 
 (2) 填写和提交 `SessionConfig`. 必填字段: `algorithm, sesman_url, players`.
