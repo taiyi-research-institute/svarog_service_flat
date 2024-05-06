@@ -20,12 +20,23 @@ pub struct SessionConfig {
     pub session_id: ::prost::alloc::string::String,
     #[prost(uint64, tag = "4")]
     pub threshold: u64,
-    #[prost(map = "string, bool", tag = "5")]
-    pub players: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
-    #[prost(map = "string, bool", tag = "6")]
-    pub players_reshared: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
+    #[prost(map = "string, message", tag = "5")]
+    pub players: ::std::collections::HashMap<::prost::alloc::string::String, Department>,
+    #[prost(map = "string, message", tag = "6")]
+    pub players_reshared: ::std::collections::HashMap<::prost::alloc::string::String, Department>,
     #[prost(uint64, tag = "7")]
     pub expire_at: u64,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Department {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "2")]
+    pub threshold: u64,
+    #[prost(map = "string, bool", tag = "3")]
+    pub players: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -72,35 +83,11 @@ pub struct ParamsKeygenMnem {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Keystore {
-    #[prost(uint64, tag = "1")]
-    pub i: u64,
-    #[prost(bytes = "vec", tag = "2")]
-    pub ui: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes = "vec", tag = "3")]
-    pub xi: ::prost::alloc::vec::Vec<u8>,
-    #[prost(map = "uint64, message", tag = "4")]
-    pub vss_scheme: ::std::collections::HashMap<u64, CoefComs>,
-    #[prost(string, tag = "5")]
+pub struct KeyTag {
+    #[prost(string, tag = "1")]
+    pub key_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
     pub xpub: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "6")]
-    pub algo: ::core::option::Option<Algorithm>,
-    #[prost(bytes = "vec", tag = "16")]
-    pub misc: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(serde::Serialize, serde::Deserialize)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OptionalKeystore {
-    #[prost(message, optional, tag = "1")]
-    pub value: ::core::option::Option<Keystore>,
-}
-#[derive(serde::Serialize, serde::Deserialize)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CoefComs {
-    #[prost(bytes = "vec", repeated, tag = "1")]
-    pub values: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -110,8 +97,10 @@ pub struct ParamsSign {
     pub sesman_url: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub session_id: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
-    pub keystore: ::core::option::Option<Keystore>,
+    #[prost(string, tag = "3")]
+    pub key_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub member_name: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "6")]
     pub tasks: ::prost::alloc::vec::Vec<SignTask>,
 }
@@ -154,8 +143,8 @@ pub struct ParamsReshare {
     pub session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub member_name: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "4")]
-    pub keystore: ::core::option::Option<Keystore>,
+    #[prost(string, tag = "4")]
+    pub key_id: ::prost::alloc::string::String,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -368,7 +357,7 @@ pub mod mpc_peer_client {
         pub async fn keygen(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsKeygen>,
-        ) -> std::result::Result<tonic::Response<super::Keystore>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::KeyTag>, tonic::Status> {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::new(
                     tonic::Code::Unknown,
@@ -385,7 +374,7 @@ pub mod mpc_peer_client {
         pub async fn keygen_mnem(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsKeygenMnem>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::KeyTag>, tonic::Status> {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::new(
                     tonic::Code::Unknown,
@@ -419,7 +408,7 @@ pub mod mpc_peer_client {
         pub async fn reshare(
             &mut self,
             request: impl tonic::IntoRequest<super::ParamsReshare>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::KeyTag>, tonic::Status> {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::new(
                     tonic::Code::Unknown,
@@ -606,11 +595,11 @@ pub mod mpc_peer_server {
         async fn keygen(
             &self,
             request: tonic::Request<super::ParamsKeygen>,
-        ) -> std::result::Result<tonic::Response<super::Keystore>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::KeyTag>, tonic::Status>;
         async fn keygen_mnem(
             &self,
             request: tonic::Request<super::ParamsKeygenMnem>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::KeyTag>, tonic::Status>;
         async fn sign(
             &self,
             request: tonic::Request<super::ParamsSign>,
@@ -618,7 +607,7 @@ pub mod mpc_peer_server {
         async fn reshare(
             &self,
             request: tonic::Request<super::ParamsReshare>,
-        ) -> std::result::Result<tonic::Response<super::OptionalKeystore>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::KeyTag>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct MpcPeerServer<T: MpcPeer> {
@@ -739,7 +728,7 @@ pub mod mpc_peer_server {
                     #[allow(non_camel_case_types)]
                     struct KeygenSvc<T: MpcPeer>(pub Arc<T>);
                     impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsKeygen> for KeygenSvc<T> {
-                        type Response = super::Keystore;
+                        type Response = super::KeyTag;
                         type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
@@ -777,7 +766,7 @@ pub mod mpc_peer_server {
                     #[allow(non_camel_case_types)]
                     struct KeygenMnemSvc<T: MpcPeer>(pub Arc<T>);
                     impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsKeygenMnem> for KeygenMnemSvc<T> {
-                        type Response = super::OptionalKeystore;
+                        type Response = super::KeyTag;
                         type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
@@ -854,7 +843,7 @@ pub mod mpc_peer_server {
                     #[allow(non_camel_case_types)]
                     struct ReshareSvc<T: MpcPeer>(pub Arc<T>);
                     impl<T: MpcPeer> tonic::server::UnaryService<super::ParamsReshare> for ReshareSvc<T> {
-                        type Response = super::OptionalKeystore;
+                        type Response = super::KeyTag;
                         type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,

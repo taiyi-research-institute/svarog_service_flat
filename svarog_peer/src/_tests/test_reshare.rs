@@ -1,23 +1,19 @@
 #![allow(nonstandard_style)]
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use erreur::*;
-use svarog_grpc::{mpc_peer_client::MpcPeerClient, ParamsKeygen, ParamsReshare, ParamsSign};
+use svarog_grpc::{
+    mpc_peer_client::MpcPeerClient, KeyTag, ParamsKeygen, ParamsReshare, ParamsSign,
+};
 use tonic::Request;
 
-use crate::mock_data::{
-    mock_keygen_config, mock_one_sign_task, mock_reshare_config, mock_sign_config, players1,
-    players2, th1, th2,
-};
-
 mod mock_data;
-const peer_url: &str = "http://127.0.0.1:9001";
-const sesman_url: &str = "http://127.0.0.1:9000";
+use mock_data::*;
 
 /// 集成测试普通的keygen, sign
 #[tokio::main]
 async fn main() -> Resultat<()> {
-    let mut peer = MpcPeerClient::connect(peer_url).await.catch_()?;
+    let mut peer = MpcPeerClient::connect(PEER_URL).await.catch_()?;
 
     use svarog_grpc::{Algorithm, Curve, Scheme};
     let algorithms = [
@@ -32,71 +28,53 @@ async fn main() -> Resultat<()> {
     ];
 
     for algo in algorithms.iter().cloned() {
+        let cfg = mockcfg(&algo);
+
         println!(
             " ========== BEGIN Testing {:?}-{:?} ========== ",
             algo.scheme(),
             algo.curve()
         );
-        let keystores_old = {
-            let mut cfg = mock_keygen_config(th1, &players1);
-            cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = Some(algo.clone());
+        let key_tags: BTreeMap<String, KeyTag> = {
             let tag = peer
-                .new_session(Request::new(cfg.clone()))
+                .new_session(Request::new(cfg.keygen.clone()))
                 .await
                 .catch_()?
                 .into_inner();
             let sid = tag.session_id;
             let mut threads = BTreeMap::new();
-            for (player, _) in cfg.players.iter() {
-                let req = Request::new(ParamsKeygen {
-                    sesman_url: sesman_url.to_owned(),
-                    session_id: sid.clone(),
-                    member_name: player.clone(),
-                });
+            for (_, dept_obj) in cfg.keygen.players.iter() {
+                for (player, _) in dept_obj.players.iter() {
+                    let req = Request::new(ParamsKeygen {
+                        sesman_url: cfg.keygen.sesman_url.clone(),
+                        session_id: sid.clone(),
+                        member_name: player.clone(),
+                    });
 
-                let mut peer = peer.clone();
-                let future = async move { peer.keygen(req).await };
-                let thread = tokio::spawn(future);
-                threads.insert(player.clone(), thread);
-                println!("BEGIN dummy keygen -- {}", player);
+                    let mut peer = peer.clone();
+                    let future = async move { peer.keygen(req).await };
+                    let thread = tokio::spawn(future);
+                    threads.insert(player.clone(), thread);
+                    println!("BEGIN dummy keygen -- {}", player);
+                }
             }
-            let mut keystores = BTreeMap::new();
+
+            let mut key_tags = BTreeMap::new();
             for (player, thread) in threads.iter_mut() {
                 let resp = thread
                     .await
                     .catch("Panic", "")?
                     .catch("Exception", "")?
                     .into_inner();
-                keystores.insert(player.clone(), resp);
+                key_tags.insert(player.clone(), resp);
                 println!("END dummy keygen -- {}", player);
             }
-            keystores
+            key_tags
         };
 
-        let keystores = {
-            let (mut cfg, exclusive_consumers) =
-                mock_reshare_config(th1, &players1, th2, &players2);
-            cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = Some(algo.clone());
-            '_print_providers: {
-                let mut providers = BTreeSet::new();
-                for (player, &att) in cfg.players.iter() {
-                    if false == att {
-                        continue;
-                    }
-                    providers.insert(player);
-                }
-                let mut consumers = BTreeSet::new();
-                for (player, _) in cfg.players_reshared.iter() {
-                    consumers.insert(player.clone());
-                }
-                println!("Providers: {:?}", &providers);
-                println!("Consumers: {:?}", &consumers);
-                println!("Exclusive Consumers: {:?}", &exclusive_consumers);
-            }
+        let key_tags = {
             let tag = peer
-                .new_session(Request::new(cfg.clone()))
+                .new_session(Request::new(cfg.reshare.clone()))
                 .await
                 .catch_()?
                 .into_inner();
@@ -105,39 +83,46 @@ async fn main() -> Resultat<()> {
             let mut threads = BTreeMap::new();
 
             // spawn thread for reshare providers
-            for (player, &att) in cfg.players.iter() {
-                if false == att {
-                    continue;
-                }
-                let keystore = keystores_old.get(player).ifnone_()?;
-                let req = Request::new(ParamsReshare {
-                    sesman_url: sesman_url.to_owned(),
-                    session_id: sid.clone(),
-                    member_name: player.clone(),
-                    keystore: Some(keystore.clone()),
-                });
+            for (_, dept_obj) in cfg.reshare.players.iter() {
+                for (player, &att) in dept_obj.players.iter() {
+                    if false == att {
+                        continue;
+                    }
+                    let key_id = key_tags.get(player).ifnone_()?.key_id.clone();
+                    let req = Request::new(ParamsReshare {
+                        sesman_url: cfg.reshare.sesman_url.clone(),
+                        session_id: sid.clone(),
+                        member_name: player.clone(),
+                        key_id,
+                    });
 
-                let mut peer = peer.clone();
-                let future = async move { peer.reshare(req).await };
-                let thread = tokio::spawn(future);
-                threads.insert(player.clone(), thread);
-                println!("BEGIN reshare -- {}", player);
+                    let mut peer = peer.clone();
+                    let future = async move { peer.reshare(req).await };
+                    let thread = tokio::spawn(future);
+                    threads.insert(player.clone(), thread);
+                    println!("BEGIN reshare -- {}", player);
+                }
             }
 
             // spawn threads for reshare consumers not in providers
-            for player in exclusive_consumers.iter() {
-                let req = Request::new(ParamsReshare {
-                    sesman_url: sesman_url.to_owned(),
-                    session_id: sid.clone(),
-                    member_name: player.to_owned(),
-                    keystore: None,
-                });
+            for (_, dept_obj) in cfg.reshare.players_reshared.iter() {
+                for (player, _) in dept_obj.players.iter() {
+                    if threads.contains_key(player) {
+                        continue;
+                    }
+                    let req = Request::new(ParamsReshare {
+                        sesman_url: cfg.reshare.sesman_url.clone(),
+                        session_id: sid.clone(),
+                        member_name: player.clone(),
+                        key_id: "".to_owned(),
+                    });
 
-                let mut peer = peer.clone();
-                let future = async move { peer.reshare(req).await };
-                let thread = tokio::spawn(future);
-                threads.insert(player.clone(), thread);
-                println!("BEGIN reshare -- {} (exclusive consumer)", player);
+                    let mut peer = peer.clone();
+                    let future = async move { peer.reshare(req).await };
+                    let thread = tokio::spawn(future);
+                    threads.insert(player.clone(), thread);
+                    println!("BEGIN reshare -- {} (exclusive consumer)", player);
+                }
             }
 
             let mut keystores = BTreeMap::new();
@@ -154,44 +139,35 @@ async fn main() -> Resultat<()> {
         };
 
         let signatures = {
-            let mut cfg = mock_sign_config(th2, &players2);
-            cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = Some(algo.clone());
-            '_print_signers: {
-                let mut signers = BTreeSet::new();
-                for (player, &att) in cfg.players.iter() {
-                    if false == att {
-                        continue;
-                    }
-                    signers.insert(player);
-                }
-                println!("Signers: {:?}", &signers);
-            }
             let tag = peer
-                .new_session(Request::new(cfg.clone()))
+                .new_session(Request::new(cfg.sign_after_reshare.clone()))
                 .await
                 .catch_()?
                 .into_inner();
             let sid = tag.session_id;
             let mut threads = BTreeMap::new();
-            for (player, &att) in cfg.players.iter() {
-                if false == att {
-                    continue;
-                }
-                let keystore = keystores.get(player).ifnone_()?.value.as_ref().ifnone_()?;
-                let req = Request::new(ParamsSign {
-                    sesman_url: sesman_url.to_owned(),
-                    session_id: sid.clone(),
-                    keystore: Some(keystore.clone()),
-                    tasks: mock_one_sign_task(),
-                });
+            for (_, dept_obj) in cfg.sign_after_reshare.players.iter() {
+                for (player, &att) in dept_obj.players.iter() {
+                    if false == att {
+                        continue;
+                    }
+                    let key_id = key_tags.get(player).ifnone_()?.key_id.clone();
+                    let req = Request::new(ParamsSign {
+                        sesman_url: cfg.sign_after_reshare.sesman_url.to_owned(),
+                        session_id: sid.clone(),
+                        key_id,
+                        member_name: player.clone(),
+                        tasks: mock_sign_tasks(),
+                    });
 
-                let mut peer = peer.clone();
-                let future = async move { peer.sign(req).await };
-                let thread = tokio::spawn(future);
-                threads.insert(player, thread);
-                println!("BEGIN sign -- {}", player);
+                    let mut peer = peer.clone();
+                    let future = async move { peer.sign(req).await };
+                    let thread = tokio::spawn(future);
+                    threads.insert(player, thread);
+                    println!("BEGIN sign -- {}", player);
+                }
             }
+
             let mut signatures = BTreeMap::new();
             for (&player, thread) in threads.iter_mut() {
                 let resp = thread

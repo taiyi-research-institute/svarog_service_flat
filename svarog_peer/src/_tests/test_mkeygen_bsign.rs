@@ -7,7 +7,7 @@ use tonic::Request;
 
 // 改成通配符引用之后, 会难以检查到底用了哪些符号. 通配符看着优雅, 但是不利于代码审查.
 use crate::mock_data::{
-    mock_keygen_config, mock_mnem, mock_sign_config, mock_sign_tasks, players1, th1,
+    mock_mnem, mockcfg, mock_sign_tasks,
 };
 
 mod mock_data;
@@ -32,17 +32,15 @@ async fn main() -> Resultat<()> {
     ];
 
     for algo in algorithms.iter().cloned() {
+        let configs = mockcfg(&algo);
         println!(
             " ========== BEGIN Testing {:?}-{:?} ========== ",
             algo.scheme(),
             algo.curve()
         );
         let keystores = {
-            let mut cfg = mock_keygen_config(th1, &players1);
-            cfg.sesman_url = sesman_url.to_string();
-            cfg.algorithm = Some(algo.clone());
             let tag = peer
-                .new_session(Request::new(cfg.clone()))
+                .new_session(Request::new(configs.keygen.clone()))
                 .await
                 .catch_()?
                 .into_inner();

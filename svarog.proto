@@ -3,10 +3,10 @@ package svarog;
 
 service MpcPeer {
     rpc NewSession(SessionConfig) returns (SessionTag);
-    rpc Keygen(ParamsKeygen) returns (Keystore);
-    rpc KeygenMnem(ParamsKeygenMnem) returns (OptionalKeystore);
+    rpc Keygen(ParamsKeygen) returns (KeyTag);
+    rpc KeygenMnem(ParamsKeygenMnem) returns (KeyTag);
     rpc Sign(ParamsSign) returns (VecSignature);
-    rpc Reshare(ParamsReshare) returns (OptionalKeystore);
+    rpc Reshare(ParamsReshare) returns (KeyTag);
 }
 
 enum Curve {
@@ -30,9 +30,15 @@ message SessionConfig {
     string sesman_url = 2;
     string session_id = 3;
     uint64 threshold = 4;
-    map<string, bool> players = 5;
-    map<string, bool> players_reshared = 6;
+    map<string, Department> players = 5;
+    map<string, Department> players_reshared = 6;
     uint64 expire_at = 7;
+}
+
+message Department {
+    string name = 1;
+    uint64 threshold = 2;
+    map<string, bool> players = 3;
 }
 
 message SessionTag {
@@ -58,29 +64,16 @@ message ParamsKeygenMnem {
     optional Mnemonic mnemonic = 4;
 }
 
-message Keystore {
-    uint64 i = 1;
-    bytes ui = 2;
-    bytes xi = 3;
-    map<uint64, CoefComs> vss_scheme = 4;
-    string xpub = 5;
-    Algorithm algo = 6;
-
-    bytes misc = 16;
-}
-
-message OptionalKeystore {
-    optional Keystore value = 1;
-}
-
-message CoefComs {
-    repeated bytes values = 1;
+message KeyTag {
+    string key_id = 1;
+    string xpub = 2;
 }
 
 message ParamsSign {
     string sesman_url = 1;
     string session_id = 2;
-    Keystore keystore = 3;
+    string key_id = 3;
+    string member_name = 4;
     repeated SignTask tasks = 6;
 }
 
@@ -104,7 +97,7 @@ message ParamsReshare {
     string sesman_url = 1;
     string session_id = 2;
     string member_name = 3;
-    optional Keystore keystore = 4;
+    string key_id = 4;
 }
 
 service MpcSessionManager {

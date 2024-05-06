@@ -23,7 +23,7 @@ async fn main() -> Resultat<()> {
             Arg::new("port")
                 .short('p')
                 .required(false)
-                .default_value("9000")
+                .default_value("2000")
                 .value_parser(value_parser!(u16))
                 .action(ArgAction::Set),
         )
