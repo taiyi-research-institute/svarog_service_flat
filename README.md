@@ -38,7 +38,9 @@
 (2) 填写并提交 `SessionConfig`. 
 必填字段: `algorithm, sesman_url, threshold, players` . 
 
-(3) 各参与方填写并提交 `ParamsKeygen`. 接口返回 `Keystore`; 各参与方需妥善保存它, 避免丢失和泄露.
+(3) 各参与方填写并提交 `ParamsKeygen`, 收到响应 `KeyTag`. 
+
+(4) 任意参与方成功返回, 则会话成功.
 
 # MpcPeer::KeygenMnem
 
@@ -46,19 +48,24 @@
 
 (2) 填写并提交 `SessionConfig`. 填写方式与 Keygen 相同.
 
-(3) 各参与方填写并提交 `ParamsKeygenMnem`. 注意: 恰有一方提供助记词. 接口返回 `OptionalKeystore`, 意思是拆包后有可能得到 `Keystore`, 也有可能是空的.
+(3) 各参与方填写并提交 `ParamsKeygenMnem`, 收到响应 `KeyTag`.
 
-> 如果助记词提供者不持有分片; 也就是 `member_name` 填 **空字符串**, 同时还提供助记词; 那么有且只有助记词提供者所得到的 `OptionalKeystore` 拆出来是空的. 其他情况都能拆出来 `Keystore` .
+(4) 任意分片持有方成功返回, 则会话成功.
 
 # MpcPeer::Sign
 
 (1) 收集 `players` 名单. 需要注意:
-* `players` 的键必须曾经参与同一场 Keygen , 或 KeygenMnem , 或作为 Reshare consumer; 必须恰好包含前述人员, 不能增删改.
+* `players` 的键必须曾经参与同一场 Keygen , 或 KeygenMnem; 或曾参与同一场 Reshare 的 consumer 角色. 
+* `players` 的键必须恰好包含前述人员, 不能增删改.
 * `players` 的值决定了是否出席本场会话. 出席人数应不小于相应的门限, 否则签名将失败.
 
 (2) 填写和提交 `SessionConfig`. 必填字段: `algorithm, sesman_url, players`.
 
-(3) 各参与方填写并提交 `ParamsSign`. 接口返回 `Signature`.
+(3) 各参与方填写并提交 `ParamsSign`. 收到响应 `Signature`. 
+
+> 注意各方 `ParamsSign.tasks` 保持一致.
+
+(4) 任意参与方成功返回, 则会话成功.
 
 # MpcPeer::Reshare
 
@@ -71,4 +78,6 @@
 (3) 填写并提交 `SessionConfig`. 
 必填字段: `algorithm, sesman_url, threshold, players, players_reshared` . 注意 `threshold` 与 `players_reshared` 而不是 `players` 对应.
 
-(4) 各参与方填写并提交 `ParamsReshare`. 接口返回 `OptionalKeystore`; 如果参与方不是 consumer, 那么一定拆出空; 如果参与方是 consumer, 那么一定拆出 `Keystore`.
+(4) 各参与方填写并提交 `ParamsReshare`. 收到响应 `KeyTag`.
+
+(5) 任意 Reshare consumer 成功返回, 则会话成功.
