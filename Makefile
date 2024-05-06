@@ -18,7 +18,7 @@ build: kill_tmux
 	cp target/release/svarog_sesman out/svarog_sesman
 	cp target/release/svarog_peer out/svarog_peer
 	cp target/release/test_keygen_sign out/test_keygen_sign
-	cp target/release/test_mkeygen_bsign out/test_mkeygen_bsign
+	cp target/release/test_mkeygen out/test_mkeygen
 	cp target/release/test_reshare out/test_reshare
 
 clean:
@@ -38,7 +38,7 @@ test_keygen_sign: build
 	@sleep 1
 	@tmux send-keys -t svarog:test "cd $(shell pwd)/out && ./test_keygen_sign" C-m
 
-test_mkeygen_bsign: build
+test_mkeygen: build
 	@tmux new-session -s svarog \
 		-n man -d ";" new-window \
 		-n peer -d ";" new-window \
@@ -47,7 +47,7 @@ test_mkeygen_bsign: build
 	@tmux send-keys -t svarog:man  "cd $(shell pwd)/out && ./svarog_sesman" C-m
 	@tmux send-keys -t svarog:peer "cd $(shell pwd)/out && ./svarog_peer" C-m
 	@sleep 1
-	@tmux send-keys -t svarog:test "cd $(shell pwd)/out && ./test_mkeygen_bsign" C-m
+	@tmux send-keys -t svarog:test "cd $(shell pwd)/out && ./test_mkeygen" C-m
 
 test_reshare: build
 	@tmux new-session -s svarog \

@@ -154,9 +154,6 @@ impl MpcPeer for SvarogPeer {
                     throw!("NotImplemented", msg);
                 }
             };
-            '_println: {
-                println!("keygen player: {} finish", &params.member_name);
-            }
             Ok(keytag)
         }
         let keytag = foo(request)
@@ -180,6 +177,7 @@ impl MpcPeer for SvarogPeer {
             '_assert: {
                 let num_players: usize = cfg.players.iter().map(|(_, v)| v.players.len()).sum();
                 let num_attending: usize = arch.players.iter().map(|(_, v)| v.len()).sum();
+                let num_attending = num_attending / 2;
                 assert_throw!(
                     num_players == num_attending,
                     "all keygen players should attend"

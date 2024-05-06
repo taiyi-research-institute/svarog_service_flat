@@ -2,7 +2,9 @@
 use std::collections::BTreeMap;
 
 use erreur::*;
-use svarog_grpc::{mpc_peer_client::MpcPeerClient, KeyTag, ParamsKeygen, ParamsSign};
+use svarog_grpc::{
+    mpc_peer_client::MpcPeerClient, KeyTag, ParamsKeygen, ParamsKeygenMnem, ParamsSign,
+};
 use tonic::Request;
 
 mod mock_data;
@@ -43,18 +45,33 @@ async fn main() -> Resultat<()> {
             let mut threads = BTreeMap::new();
             for (_, dept_obj) in cfg.keygen.players.iter() {
                 for (player, _) in dept_obj.players.iter() {
-                    let req = Request::new(ParamsKeygen {
+                    let req = Request::new(ParamsKeygenMnem {
                         sesman_url: cfg.keygen.sesman_url.clone(),
                         session_id: sid.clone(),
                         member_name: player.clone(),
+                        mnemonic: None,
                     });
 
                     let mut peer = peer.clone();
-                    let future = async move { peer.keygen(req).await };
+                    let future = async move { peer.keygen_mnem(req).await };
                     let thread = tokio::spawn(future);
                     threads.insert(player.clone(), thread);
                     println!("BEGIN keygen -- {}", player);
                 }
+            }
+            '_mnem_provider: {
+                let req = Request::new(ParamsKeygenMnem {
+                    sesman_url: cfg.keygen.sesman_url.clone(),
+                    session_id: sid.clone(),
+                    member_name: "".to_owned(),
+                    mnemonic: Some(mock_mnem()),
+                });
+
+                let mut peer = peer.clone();
+                let future = async move { peer.keygen_mnem(req).await };
+                let thread = tokio::spawn(future);
+                threads.insert("".to_owned(), thread);
+                println!("BEGIN keygen -- {}", "__mnem_provider__");
             }
 
             let mut key_tags = BTreeMap::new();

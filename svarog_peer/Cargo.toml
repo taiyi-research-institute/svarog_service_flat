@@ -8,13 +8,13 @@ edition = "2021"
 name = "svarog_peer"
 path = "src/server_main.rs"
 
-# [[bin]]
-# name = "test_keygen_sign"
-# path = "src/_tests/test_keygen_sign.rs"
+[[bin]]
+name = "test_keygen_sign"
+path = "src/_tests/test_keygen_sign.rs"
 
-# [[bin]]
-# name = "test_mkeygen_bsign"
-# path = "src/_tests/test_mkeygen_bsign.rs"
+[[bin]]
+name = "test_mkeygen"
+path = "src/_tests/test_mkeygen.rs"
 
 [[bin]]
 name = "test_reshare"
