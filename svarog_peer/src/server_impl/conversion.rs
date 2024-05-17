@@ -129,10 +129,8 @@ pub(crate) trait SignatureConversion {
 
 impl SignatureConversion for SignatureElgamal {
     fn to_proto(&self) -> Resultat<Signature> {
-        use svarog_algo::k256::elliptic_curve::point::AffineCoordinates;
-
         let mut ret = Signature::default();
-        ret.r = self.R.to_affine().x().to_vec();
+        ret.r = SignatureElgamal::eval_rx(&self.R).to_bytes().to_vec();
         ret.s = self.s.to_bytes().to_vec();
         ret.v = self.v as u32;
         ret.algo = Some(Algorithm {
