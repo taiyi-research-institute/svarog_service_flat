@@ -133,6 +133,7 @@ impl SignatureConversion for SignatureElgamal {
         ret.r = SignatureElgamal::eval_rx(&self.R).to_bytes().to_vec();
         ret.s = self.s.to_bytes().to_vec();
         ret.v = self.v as u32;
+        ret.m = self.m.to_bytes().to_vec();
         ret.algo = Some(Algorithm {
             curve: Curve::Secp256k1.into(),
             scheme: Scheme::ElGamal.into(),
@@ -147,6 +148,7 @@ impl SignatureConversion for SignatureSchnorr {
         ret.r = self.R.compress().to_bytes().to_vec();
         ret.s = self.s.to_bytes().to_vec();
         ret.v = 0;
+        ret.m = self.m.clone();
         ret.algo = Some(Algorithm {
             curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),

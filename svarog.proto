@@ -96,8 +96,9 @@ message VecSignature {
 message Signature {
     bytes r = 1;
     bytes s = 2;
-    uint32 v = 3;
-    Algorithm algo = 4;
+    bytes m = 3;
+    uint32 v = 4;
+    Algorithm algo = 5;
 }
 
 message ParamsReshare {
