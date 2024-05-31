@@ -27,6 +27,7 @@ impl KeystoreConversion for KeystoreElgamal {
             keystore_pb.vss_scheme.insert(*i as u64, coef_com_vec_pb);
         }
         keystore_pb.xpub = self.xpub().catch_()?;
+        keystore_pb.chain_code = self.chain_code.to_vec();
         let misc = (self.paillier_key.clone(), self.paillier_n_dict.clone());
         let misc_bytes = serde_pickle::to_vec(&misc, Default::default()).catch_()?;
         keystore_pb.algo = Some(Algorithm {
@@ -61,6 +62,8 @@ impl KeystoreConversion for KeystoreElgamal {
             }
             keystore.vss_scheme.insert(*i as usize, coef_com_vec);
         }
+        assert_throw!(keystore_pb.chain_code.len() == 32);
+        keystore.chain_code = keystore_pb.chain_code.clone().try_into().unwrap();
         (keystore.paillier_key, keystore.paillier_n_dict) =
             serde_pickle::from_slice(&keystore_pb.misc, Default::default()).catch_()?;
         keystore.paillier_key.precompute_cache().catch_()?;
@@ -83,6 +86,7 @@ impl KeystoreConversion for KeystoreSchnorr {
             keystore_pb.vss_scheme.insert(*i as u64, coef_com_vec_pb);
         }
         keystore_pb.xpub = self.xpub().catch_()?;
+        keystore_pb.chain_code = self.chain_code.to_vec();
         keystore_pb.algo = Some(Algorithm {
             curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),
@@ -118,6 +122,8 @@ impl KeystoreConversion for KeystoreSchnorr {
             }
             keystore.vss_scheme.insert(*i as usize, coef_com_vec);
         }
+        assert_throw!(keystore_pb.chain_code.len() == 32);
+        keystore.chain_code = keystore_pb.chain_code.clone().try_into().unwrap();
 
         Ok(keystore)
     }

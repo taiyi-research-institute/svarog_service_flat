@@ -17,7 +17,7 @@ pub(crate) async fn keygen_gg18(
 ) -> Resultat<Keystore> {
     use svarog_algo::elgamal_secp256k1::keygen;
 
-    let keystore = keygen(chan, players, t, i, None).await.catch_()?;
+    let keystore = keygen(chan, players, t, i, None, None).await.catch_()?;
     let keystore = keystore.to_proto().catch_()?;
     Ok(keystore)
 }
@@ -31,7 +31,9 @@ pub(crate) async fn keygen_frost(
     use svarog_algo::schnorr_ed25519::keygen;
 
     let sid = chan.sid().to_owned();
-    let keystore = keygen(chan, players, t, i, None, sid).await.catch_()?;
+    let keystore = keygen(chan, players, t, i, None, None, sid)
+        .await
+        .catch_()?;
     let keystore = keystore.to_proto().catch_()?;
     Ok(keystore)
 }

@@ -64,7 +64,8 @@ message Keystore {
     bytes xi = 3;
     map<uint64, CoefComs> vss_scheme = 4;
     string xpub = 5;
-    Algorithm algo = 6;
+    bytes chain_code = 6;
+    Algorithm algo = 7;
 
     bytes misc = 16;
 }
