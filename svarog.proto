@@ -87,7 +87,7 @@ message ParamsSign {
 
 message SignTask {
     string derivation_path = 1;
-    bytes tx_hash = 2;
+    bytes tx_data = 2;
 }
 
 message VecSignature {

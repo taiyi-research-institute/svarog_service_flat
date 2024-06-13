@@ -129,7 +129,7 @@ pub(crate) async fn sign_gg18(
     let res = {
         let tasks = tasks
             .into_iter()
-            .map(|task| (task.tx_hash, task.derivation_path))
+            .map(|task| (task.tx_data, task.derivation_path))
             .collect();
         let sigs = sign_batch(chan, signers, keystore, tasks).await.catch_()?;
         let mut res = Vec::new();
@@ -157,7 +157,7 @@ pub(crate) async fn sign_frost(
     let res = {
         let tasks = tasks
             .into_iter()
-            .map(|task| (task.tx_hash, task.derivation_path))
+            .map(|task| (task.tx_data, task.derivation_path))
             .collect();
         let sigs = sign_batch(chan, signers, keystore, tasks).await.catch_()?;
         let mut res = Vec::new();

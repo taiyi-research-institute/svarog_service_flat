@@ -29,7 +29,7 @@ pub fn mock_sign_tasks() -> Vec<SignTask> {
         let hmsg = hasher.finalize().to_vec();
         tasks.push(SignTask {
             derivation_path: dpath.to_string(),
-            tx_hash: hmsg,
+            tx_data: hmsg,
         });
     }
 
