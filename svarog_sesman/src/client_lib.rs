@@ -9,7 +9,7 @@ use svarog_grpc::{
     mpc_session_manager_client::MpcSessionManagerClient, Message, SessionConfig, SessionTag,
     VecMessage,
 };
-use tonic::transport::Channel;
+use tonic::transport::{Certificate, Channel, ClientTlsConfig};
 
 #[derive(Clone)]
 pub struct SvarogChannel {
@@ -38,10 +38,24 @@ impl SvarogChannel {
     }
 
     pub async fn new_session(cfg: &SessionConfig, sesman_url: &str) -> Resultat<Self> {
-        let mut cl = MpcSessionManagerClient::connect(sesman_url.to_owned())
-            .await
-            .map_err(|e| format!("{:#?}", e))
-            .catch("CannotConnectGrpcServer", sesman_url)?;
+        let cert_exists = tokio::fs::try_exists("tls/cert.pem").await.catch_()?;
+        let cert = if cert_exists {
+            let pem = tokio::fs::read_to_string("tls/fullchain.pem")
+                .await
+                .catch_()?;
+            Some(pem)
+        } else {
+            None
+        };
+        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
+        if let Some(cert) = cert.as_ref() {
+            let ca = Certificate::from_pem(cert);
+            let tls = ClientTlsConfig::new().ca_certificate(ca);
+            ch = ch.tls_config(tls).catch_()?;
+        }
+        let ch = ch.connect().await.catch_()?;
+        let mut cl = MpcSessionManagerClient::new(ch);
+
         let tag = cl
             .new_session(cfg.clone())
             .await
@@ -57,10 +71,24 @@ impl SvarogChannel {
     }
 
     pub async fn use_session(sid: &str, sesman_url: &str) -> Resultat<(Self, SessionConfig)> {
-        let mut cl = MpcSessionManagerClient::connect(sesman_url.to_owned())
-            .await
-            .map_err(|e| format!("{:#?}", e))
-            .catch("CannotConnectGrpcServer", sesman_url)?;
+        let cert_exists = tokio::fs::try_exists("tls/cert.pem").await.catch_()?;
+        let cert = if cert_exists {
+            let pem = tokio::fs::read_to_string("tls/fullchain.pem")
+                .await
+                .catch_()?;
+            Some(pem)
+        } else {
+            None
+        };
+        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
+        if let Some(cert) = cert.as_ref() {
+            let ca = Certificate::from_pem(cert);
+            let tls = ClientTlsConfig::new().ca_certificate(ca);
+            ch = ch.tls_config(tls).catch_()?;
+        }
+        let ch = ch.connect().await.catch_()?;
+        let mut cl = MpcSessionManagerClient::new(ch);
+
         let cfg: SessionConfig = cl
             .get_session_config(SessionTag {
                 session_id: sid.to_owned(),

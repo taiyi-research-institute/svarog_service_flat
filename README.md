@@ -21,7 +21,7 @@
 一场会话由元组 `(sesman_url, session_id)` 唯一确定. 其中,
 
 * `sesman_url` 是 `svarog_sesman` 服务的 URL; 
-例如, 在 `example.org:9000` 部署 `svarog_sesman`, 那么 `sesman_url` 就是 `http://example.org:9000` .
+例如, 在 `example.org:2000` 部署 `svarog_sesman`, 那么 `sesman_url` 就是 `http://example.org:2000` .
 * `session_id` 既可以由用户指定, 也可以交给 sesman 来随机生成.
 由 sesman 生成的 `session_id` 是去掉连字符的小写 UUID-v4 .
 

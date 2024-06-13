@@ -9,8 +9,8 @@ use tonic::Request;
 use crate::mock_data::{mock_keygen_config, mock_one_sign_task, mock_sign_config, players1, th1};
 
 mod mock_data;
-const peer_url: &str = "http://127.0.0.1:9001";
-const sesman_url: &str = "http://127.0.0.1:9000";
+const peer_url: &str = "http://saut.top:2001";
+const sesman_url: &str = "https://saut.top:2000";
 
 /// 集成测试普通的keygen, sign
 #[tokio::main]

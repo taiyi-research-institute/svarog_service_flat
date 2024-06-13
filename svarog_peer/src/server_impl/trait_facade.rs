@@ -43,6 +43,7 @@ impl MpcPeer for SvarogPeer {
         request: Request<SessionConfig>,
     ) -> Result<Response<SessionTag>, Status> {
         let cfg = request.into_inner();
+        println!("{}", &cfg.sesman_url);
         let chan = SvarogChannel::new_session(&cfg, &cfg.sesman_url)
             .await
             .catch_()

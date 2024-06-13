@@ -11,8 +11,8 @@ use crate::mock_data::{
 };
 
 mod mock_data;
-const peer_url: &str = "http://127.0.0.1:9001";
-const sesman_url: &str = "http://127.0.0.1:9000";
+const peer_url: &str = "http://127.0.0.1:2001";
+const sesman_url: &str = "http://127.0.0.1:2000";
 
 /// 集成测试普通的keygen, sign
 #[tokio::main]

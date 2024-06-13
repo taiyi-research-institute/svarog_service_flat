@@ -3,7 +3,7 @@ use erreur::*;
 mod server_impl;
 use server_impl::*;
 use svarog_grpc::mpc_peer_server::MpcPeerServer;
-use tonic::transport::Server;
+use tonic::transport::{Identity, Server, ServerTlsConfig};
 
 #[tokio::main]
 async fn main() -> Resultat<()> {
@@ -21,7 +21,7 @@ async fn main() -> Resultat<()> {
             Arg::new("port")
                 .short('p')
                 .required(false)
-                .default_value("9001")
+                .default_value("2001")
                 .value_parser(value_parser!(u16))
                 .action(ArgAction::Set),
         )
@@ -32,7 +32,21 @@ async fn main() -> Resultat<()> {
 
     println!("svarog_peer will listen on {}:{}", &host, port);
 
-    Server::builder()
+    let mut server = Server::builder();
+    let cert_exists = tokio::fs::try_exists("tls/cert.pem").await.catch_()?;
+    let priv_exists = tokio::fs::try_exists("tls/privkey.pem").await.catch_()?;
+    if cert_exists && priv_exists {
+        let cert = tokio::fs::read_to_string("tls/cert.pem").await.catch_()?;
+        let key = tokio::fs::read_to_string("tls/privkey.pem")
+            .await
+            .catch_()?;
+        let ident = Identity::from_pem(cert, key);
+        server = server
+            .tls_config(ServerTlsConfig::new().identity(ident))
+            .catch_()?;
+    }
+    
+    server
         .add_service(MpcPeerServer::new(SvarogPeer {}))
         .serve(format!("{host}:{port}").parse().unwrap())
         .await
