@@ -3,7 +3,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use erreur::*;
 use svarog_grpc::{mpc_peer_client::MpcPeerClient, ParamsKeygen, ParamsSign};
-use tonic::Request;
+use tonic::{
+    transport::{Certificate, Channel, ClientTlsConfig},
+    Request,
+};
 
 // 改成通配符引用之后, 会难以检查到底用了哪些符号. 通配符看着优雅, 但是不利于代码审查.
 use crate::mock_data::{mock_keygen_config, mock_one_sign_task, mock_sign_config, players1, th1};
@@ -15,7 +18,32 @@ const sesman_url: &str = "https://saut.top:2000";
 /// 集成测试普通的keygen, sign
 #[tokio::main]
 async fn main() -> Resultat<()> {
-    let mut peer = MpcPeerClient::connect(peer_url).await.catch_()?;
+    // let mut peer = MpcPeerClient::connect(peer_url).await.catch_()?;
+    let mut peer = {
+        let cert_exists = tokio::fs::try_exists("tls/fullchain.pem").await.catch_()?;
+        let cert = if cert_exists {
+            let pem = tokio::fs::read_to_string("tls/fullchain.pem")
+                .await
+                .catch_()?;
+            Some(pem)
+        } else {
+            None
+        };
+        let mut ch = Channel::from_shared(peer_url.to_string()).catch_()?;
+        if let Some(cert) = cert.as_ref() {
+            let ca = Certificate::from_pem(cert);
+            let tls = ClientTlsConfig::new().ca_certificate(ca);
+            ch = ch.tls_config(tls).catch_()?;
+        }
+        let ch = match ch.connect().await {
+            Ok(val) => val,
+            Err(e) => {
+                println!("{}", e.to_string());
+                Err(e).catch_()?
+            }
+        };
+        MpcPeerClient::new(ch)
+    };
 
     use svarog_grpc::{Algorithm, Curve, Scheme};
     let algorithms = [

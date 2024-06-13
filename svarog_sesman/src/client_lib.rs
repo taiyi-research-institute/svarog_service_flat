@@ -38,7 +38,7 @@ impl SvarogChannel {
     }
 
     pub async fn new_session(cfg: &SessionConfig, sesman_url: &str) -> Resultat<Self> {
-        let cert_exists = tokio::fs::try_exists("tls/cert.pem").await.catch_()?;
+        let cert_exists = tokio::fs::try_exists("tls/fullchain.pem").await.catch_()?;
         let cert = if cert_exists {
             let pem = tokio::fs::read_to_string("tls/fullchain.pem")
                 .await
@@ -53,7 +53,10 @@ impl SvarogChannel {
             let tls = ClientTlsConfig::new().ca_certificate(ca);
             ch = ch.tls_config(tls).catch_()?;
         }
-        let ch = ch.connect().await.catch_()?;
+        let ch = ch
+            .connect()
+            .await
+            .catch("", format!("Try connecting to {}", sesman_url))?;
         let mut cl = MpcSessionManagerClient::new(ch);
 
         let tag = cl

@@ -45,7 +45,7 @@ async fn main() -> Resultat<()> {
             .tls_config(ServerTlsConfig::new().identity(ident))
             .catch_()?;
     }
-    
+
     server
         .add_service(MpcPeerServer::new(SvarogPeer {}))
         .serve(format!("{host}:{port}").parse().unwrap())
