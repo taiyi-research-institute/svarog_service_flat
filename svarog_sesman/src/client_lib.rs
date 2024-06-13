@@ -37,19 +37,13 @@ impl SvarogChannel {
         self.expire_at
     }
 
-    pub async fn new_session(cfg: &SessionConfig, sesman_url: &str) -> Resultat<Self> {
-        let cert_exists = tokio::fs::try_exists("tls/fullchain.pem").await.catch_()?;
-        let cert = if cert_exists {
+    pub async fn new_session(cfg: &SessionConfig, sesman_url: &str, https: bool) -> Resultat<Self> {
+        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
+        if https {
             let pem = tokio::fs::read_to_string("tls/fullchain.pem")
                 .await
                 .catch_()?;
-            Some(pem)
-        } else {
-            None
-        };
-        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
-        if let Some(cert) = cert.as_ref() {
-            let ca = Certificate::from_pem(cert);
+            let ca = Certificate::from_pem(pem);
             let tls = ClientTlsConfig::new().ca_certificate(ca);
             ch = ch.tls_config(tls).catch_()?;
         }
@@ -73,23 +67,24 @@ impl SvarogChannel {
         })
     }
 
-    pub async fn use_session(sid: &str, sesman_url: &str) -> Resultat<(Self, SessionConfig)> {
-        let cert_exists = tokio::fs::try_exists("tls/cert.pem").await.catch_()?;
-        let cert = if cert_exists {
+    pub async fn use_session(
+        sid: &str,
+        sesman_url: &str,
+        https: bool,
+    ) -> Resultat<(Self, SessionConfig)> {
+        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
+        if https {
             let pem = tokio::fs::read_to_string("tls/fullchain.pem")
                 .await
                 .catch_()?;
-            Some(pem)
-        } else {
-            None
-        };
-        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
-        if let Some(cert) = cert.as_ref() {
-            let ca = Certificate::from_pem(cert);
+            let ca = Certificate::from_pem(pem);
             let tls = ClientTlsConfig::new().ca_certificate(ca);
             ch = ch.tls_config(tls).catch_()?;
         }
-        let ch = ch.connect().await.catch_()?;
+        let ch = ch
+            .connect()
+            .await
+            .catch("", format!("Try connecting to {}", sesman_url))?;
         let mut cl = MpcSessionManagerClient::new(ch);
 
         let cfg: SessionConfig = cl

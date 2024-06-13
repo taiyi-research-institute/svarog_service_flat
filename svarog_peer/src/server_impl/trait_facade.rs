@@ -18,7 +18,9 @@ use super::biz::{
 };
 
 #[derive(Clone, Copy)]
-pub(crate) struct SvarogPeer;
+pub(crate) struct SvarogPeer {
+    pub https: bool,
+}
 
 fn ses_arch(name: &str, names: &HashMap<String, bool>) -> (usize, BTreeSet<usize>) {
     let names: BTreeMap<String, bool> = names.iter().map(|(k, v)| (k.clone(), *v)).collect();
@@ -43,8 +45,7 @@ impl MpcPeer for SvarogPeer {
         request: Request<SessionConfig>,
     ) -> Result<Response<SessionTag>, Status> {
         let cfg = request.into_inner();
-        println!("{}", &cfg.sesman_url);
-        let chan = SvarogChannel::new_session(&cfg, &cfg.sesman_url)
+        let chan = SvarogChannel::new_session(&cfg, &cfg.sesman_url, self.https)
             .await
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;
@@ -56,11 +57,12 @@ impl MpcPeer for SvarogPeer {
     }
 
     async fn keygen(&self, request: Request<ParamsKeygen>) -> Result<Response<Keystore>, Status> {
-        async fn foo(request: Request<ParamsKeygen>) -> Resultat<Keystore> {
+        async fn foo(request: Request<ParamsKeygen>, https: bool) -> Resultat<Keystore> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, https)
+                    .await
+                    .catch_()?;
             let t = cfg.threshold as usize;
             let (i, players) = ses_arch(&params.member_name, &cfg.players);
             assert_throw!(
@@ -84,7 +86,7 @@ impl MpcPeer for SvarogPeer {
             };
             Ok(keystore)
         }
-        let keystore = foo(request)
+        let keystore = foo(request, self.https)
             .await
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;
@@ -95,11 +97,15 @@ impl MpcPeer for SvarogPeer {
         &self,
         request: Request<ParamsKeygenMnem>,
     ) -> Result<Response<OptionalKeystore>, Status> {
-        async fn foo(request: Request<ParamsKeygenMnem>) -> Resultat<Option<Keystore>> {
+        async fn foo(
+            request: Request<ParamsKeygenMnem>,
+            https: bool,
+        ) -> Resultat<Option<Keystore>> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, https)
+                    .await
+                    .catch_()?;
             let t = cfg.threshold as usize;
             let (i, players) = ses_arch(&params.member_name, &cfg.players);
             assert_throw!(
@@ -127,7 +133,7 @@ impl MpcPeer for SvarogPeer {
             };
             Ok(keystore)
         }
-        let keystore = foo(request)
+        let keystore = foo(request, self.https)
             .await
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;
@@ -136,11 +142,12 @@ impl MpcPeer for SvarogPeer {
     }
 
     async fn sign(&self, request: Request<ParamsSign>) -> Result<Response<VecSignature>, Status> {
-        async fn foo(request: Request<ParamsSign>) -> Resultat<Vec<Signature>> {
+        async fn foo(request: Request<ParamsSign>, https: bool) -> Resultat<Vec<Signature>> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, https)
+                    .await
+                    .catch_()?;
             let (_, signers) = ses_arch("", &cfg.players);
             let keystore = params.keystore.ifnone_()?;
             let i = keystore.i as usize;
@@ -163,7 +170,7 @@ impl MpcPeer for SvarogPeer {
             };
             Ok(sigs)
         }
-        let sigs = foo(request)
+        let sigs = foo(request, self.https)
             .await
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;
@@ -175,11 +182,12 @@ impl MpcPeer for SvarogPeer {
         &self,
         request: Request<ParamsReshare>,
     ) -> Result<Response<OptionalKeystore>, Status> {
-        async fn foo(request: Request<ParamsReshare>) -> Resultat<Option<Keystore>> {
+        async fn foo(request: Request<ParamsReshare>, https: bool) -> Resultat<Option<Keystore>> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, https)
+                    .await
+                    .catch_()?;
             let keystore = params.keystore;
             let t = cfg.threshold as usize;
             let (_, providers) = ses_arch("", &cfg.players);
@@ -223,7 +231,7 @@ impl MpcPeer for SvarogPeer {
             Ok(keystore)
         }
 
-        let keystore = foo(request)
+        let keystore = foo(request, self.https)
             .await
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;

@@ -27,10 +27,12 @@ async fn main() -> Resultat<()> {
                 .value_parser(value_parser!(u16))
                 .action(ArgAction::Set),
         )
+        .arg(Arg::new("https").long("https").action(ArgAction::SetTrue))
         .disable_help_flag(true)
         .get_matches();
     let host: String = matches.get_one::<String>("host").ifnone_()?.to_owned();
     let port: u16 = matches.get_one::<u16>("port").ifnone_()?.to_owned();
+    let https: bool = matches.get_flag("https");
     println!("svarog_sesman will listen on {}:{}", &host, port);
 
     // Init service
@@ -38,9 +40,7 @@ async fn main() -> Resultat<()> {
 
     // Start server
     let mut server = Server::builder();
-    let cert_exists = tokio::fs::try_exists("tls/cert.pem").await.catch_()?;
-    let priv_exists = tokio::fs::try_exists("tls/privkey.pem").await.catch_()?;
-    if cert_exists && priv_exists {
+    if https {
         let cert = tokio::fs::read_to_string("tls/cert.pem").await.catch_()?;
         let key = tokio::fs::read_to_string("tls/privkey.pem")
             .await
