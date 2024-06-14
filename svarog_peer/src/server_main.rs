@@ -30,7 +30,11 @@ async fn main() -> Resultat<()> {
     let host: String = matches.get_one::<String>("host").ifnone_()?.to_owned();
     let port: u16 = matches.get_one::<u16>("port").ifnone_()?.to_owned();
 
-    println!("svarog_peer will listen on {}:{}", &host, port);
+    println!("ver: 2024.06.14 16:40");
+    println!(
+        "svarog_peer will listen on {}:{}",
+        &host, port
+    );
 
     Server::builder()
         .add_service(MpcPeerServer::new(SvarogPeer {}))
