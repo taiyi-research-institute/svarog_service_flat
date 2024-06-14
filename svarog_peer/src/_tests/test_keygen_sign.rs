@@ -23,6 +23,10 @@ async fn main() -> Resultat<()> {
             curve: Curve::Ed25519.into(),
             scheme: Scheme::Schnorr.into(),
         },
+        Algorithm {
+            curve: Curve::Secp256k1.into(),
+            scheme: Scheme::Schnorr.into(),
+        },
     ];
 
     for algo in algorithms.iter().cloned() {
@@ -89,7 +93,7 @@ async fn main() -> Resultat<()> {
                         session_id: sid.clone(),
                         key_id,
                         member_name: player.clone(),
-                        tasks: mock_sign_tasks(),
+                        tasks: mock_sign_tasks(&algo),
                     });
 
                     let mut peer = peer.clone();

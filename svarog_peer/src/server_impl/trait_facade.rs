@@ -12,6 +12,8 @@ use svarog_grpc::{
 use svarog_sesman::SvarogChannel;
 use tonic::{Request, Response, Status};
 
+use crate::server_impl::biz::{keygen_mnem_taproot, keygen_taproot, reshare_taproot, sign_taproot};
+
 use super::biz::{
     keygen_frost, keygen_gg18, keygen_mnem_frost, keygen_mnem_gg18, reshare_frost, reshare_gg18,
     sign_frost, sign_gg18,
@@ -148,7 +150,15 @@ impl MpcPeer for SvarogPeer {
                 )
                 .await
                 .catch_()?,
-
+                (Curve::Secp256k1, Scheme::Schnorr) => keygen_taproot(
+                    chan,
+                    params.member_name.clone(),
+                    arch.i_dict,
+                    arch.th_dict,
+                    arch.players,
+                )
+                .await
+                .catch_()?,
                 _ => {
                     let msg = format!("Combination of curve {:?} and scheme {:?}.", curve, scheme);
                     throw!("NotImplemented", msg);
@@ -207,6 +217,16 @@ impl MpcPeer for SvarogPeer {
                 )
                 .await
                 .catch_()?,
+                (Curve::Secp256k1, Scheme::Schnorr) => keygen_mnem_taproot(
+                    chan,
+                    params.member_name,
+                    arch.i_dict,
+                    arch.th_dict,
+                    arch.players,
+                    params.mnemonic,
+                )
+                .await
+                .catch_()?,
                 _ => {
                     let msg = format!("Combination of curve {:?} and scheme {:?}.", curve, scheme);
                     throw!("NotImplemented", msg);
@@ -240,6 +260,11 @@ impl MpcPeer for SvarogPeer {
                 }
                 (Curve::Ed25519, Scheme::Schnorr) => {
                     sign_frost(chan, params.member_name, params.key_id, arch.players, tasks)
+                        .await
+                        .catch_()?
+                }
+                (Curve::Secp256k1, Scheme::Schnorr) => {
+                    sign_taproot(chan, params.member_name, params.key_id, arch.players, tasks)
                         .await
                         .catch_()?
                 }
@@ -302,6 +327,17 @@ impl MpcPeer for SvarogPeer {
                 .await
                 .catch_()?,
                 (Curve::Ed25519, Scheme::Schnorr) => reshare_frost(
+                    chan,
+                    params.member_name,
+                    params.key_id,
+                    i_dict,
+                    th_dict,
+                    providers,
+                    consumers,
+                )
+                .await
+                .catch_()?,
+                (Curve::Secp256k1, Scheme::Schnorr) => reshare_taproot(
                     chan,
                     params.member_name,
                     params.key_id,

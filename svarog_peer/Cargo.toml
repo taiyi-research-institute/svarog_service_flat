@@ -24,6 +24,7 @@ path = "src/_tests/test_reshare.rs"
 bs58 = { workspace = true }
 clap = { workspace = true }
 crossbeam-skiplist = { workspace = true }
+digest = { workspace = true }
 dashmap = { workspace = true }
 erreur = { workspace = true }
 hex = { workspace = true }

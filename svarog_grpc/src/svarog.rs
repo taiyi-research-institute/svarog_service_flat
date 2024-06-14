@@ -109,9 +109,11 @@ pub struct ParamsSign {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SignTask {
     #[prost(string, tag = "1")]
-    pub derivation_path: ::prost::alloc::string::String,
+    pub dpath: ::prost::alloc::string::String,
     #[prost(bytes = "vec", tag = "2")]
-    pub tx_hash: ::prost::alloc::vec::Vec<u8>,
+    pub msg: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub mkroot: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]

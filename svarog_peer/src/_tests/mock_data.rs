@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use rand::{seq::SliceRandom, Rng};
 use sha2::digest::crypto_common::rand_core::OsRng;
-use svarog_grpc::{Algorithm, Department, Mnemonic, SessionConfig, SignTask};
+use svarog_grpc::{Algorithm, Curve, Department, Mnemonic, Scheme, SessionConfig, SignTask};
 pub const SESMAN_URL: &str = "http://127.0.0.1:2000";
 pub const PEER_URL: &str = "http://127.0.0.1:2001";
 
@@ -16,7 +16,20 @@ pub const players2: [&str; 13] = [
     "Peter", "Quincy", "Roger",
 ];
 
-pub fn mock_sign_tasks() -> Vec<SignTask> {
+pub fn mock_sign_tasks(algo: &Algorithm) -> Vec<SignTask> {
+    let curve = algo.curve();
+    let scheme = algo.scheme();
+    match (curve, scheme) {
+        (Curve::Secp256k1, Scheme::ElGamal) => mock_sign_tasks_vanilla(),
+        (Curve::Ed25519, Scheme::Schnorr) => mock_sign_tasks_vanilla(),
+        (Curve::Secp256k1, Scheme::Schnorr) => mock_sign_tasks_taproot(),
+        _ => {
+            panic!("Unsupported algorithm");
+        }
+    }
+}
+
+pub fn mock_sign_tasks_vanilla() -> Vec<SignTask> {
     use sha2::{Digest, Sha256};
 
     let mut tasks = Vec::new();
@@ -31,8 +44,34 @@ pub fn mock_sign_tasks() -> Vec<SignTask> {
         hasher.update(msg.as_bytes());
         let hmsg = hasher.finalize().to_vec();
         tasks.push(SignTask {
-            derivation_path: dpath.to_string(),
-            tx_hash: hmsg,
+            dpath: dpath.to_string(),
+            msg: hmsg,
+            mkroot: vec![],
+        });
+    }
+
+    tasks
+}
+
+pub fn mock_sign_tasks_taproot() -> Vec<SignTask> {
+    use sha2::{Digest, Sha256};
+
+    let mut tasks = Vec::new();
+    let msgs = vec![
+        "Je ne veux pas travailler. Je ne veux pas déjeuner. Je veux seulement l'oublier. Et puis je fume.",
+        "Mon nom ne vous dit rien. Vous devez ignorer. Que nous sommes voisins. Depuis le mois de mai.",
+        "Ma flamme et mon chagrin, mais aussi mes regrets. De ne vous avoir pas, suivi sur le quai.",
+    ];
+    let dpaths = vec!["m/1/2/3/4", "m/5/6/7", "m/8/9"];
+    for (msg, dpath) in msgs.iter().zip(dpaths.iter()) {
+        let mut hasher = Sha256::new();
+        hasher.update(msg);
+        hasher.update(dpath);
+        let mkroot = hasher.finalize().to_vec();
+        tasks.push(SignTask {
+            dpath: dpath.to_string(),
+            msg: msg.as_bytes().to_vec(),
+            mkroot,
         });
     }
 

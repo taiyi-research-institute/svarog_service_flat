@@ -8,6 +8,7 @@ clap = "4"
 crossbeam-skiplist = "0.1"
 curve25519-dalek = "4"
 dashmap = "5"
+digest = "0.10"
 erreur = "0.1"
 glob = "0.3"
 hex = "0.4"
@@ -24,7 +25,7 @@ tonic-build = { version = "0.11", features = ["prost"] }
 uuid = { version = "1", features = ["v4"] }
 
 mpc_sig_abs = { rev = "68081c6", git = "https://github.com/taiyi-research-institute/mpc_sig_abs.git" }
-svarog_algo = { rev = "7616a47", git = "https://github.com/taiyi-research-institute/svarog_algo.git" }
+svarog_algo = { rev = "2a09378", git = "https://github.com/taiyi-research-institute/svarog_algo.git" }
 svarog_grpc = { path = "svarog_grpc" }
 svarog_sesman = { path = "svarog_sesman" }
 

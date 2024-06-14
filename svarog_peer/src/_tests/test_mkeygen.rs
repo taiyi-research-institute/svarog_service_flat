@@ -2,9 +2,7 @@
 use std::collections::BTreeMap;
 
 use erreur::*;
-use svarog_grpc::{
-    mpc_peer_client::MpcPeerClient, KeyTag, ParamsKeygen, ParamsKeygenMnem, ParamsSign,
-};
+use svarog_grpc::{mpc_peer_client::MpcPeerClient, KeyTag, ParamsKeygenMnem, ParamsSign};
 use tonic::Request;
 
 mod mock_data;
@@ -23,6 +21,10 @@ async fn main() -> Resultat<()> {
         },
         Algorithm {
             curve: Curve::Ed25519.into(),
+            scheme: Scheme::Schnorr.into(),
+        },
+        Algorithm {
+            curve: Curve::Secp256k1.into(),
             scheme: Scheme::Schnorr.into(),
         },
     ];
@@ -106,7 +108,7 @@ async fn main() -> Resultat<()> {
                         session_id: sid.clone(),
                         key_id,
                         member_name: player.clone(),
-                        tasks: mock_sign_tasks(),
+                        tasks: mock_sign_tasks(&algo),
                     });
 
                     let mut peer = peer.clone();
