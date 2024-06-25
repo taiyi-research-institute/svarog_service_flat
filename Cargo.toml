@@ -17,14 +17,14 @@ rand = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-pickle = "1"
-sha2 = { version = "0.10", features = ["asm"] }
+sha2 = { version = "0.10" }
 tokio = { version = "1", features = ["full"] }
 tonic = { version = "0.11", features = ["channel", "tls", "tls-roots", "tls-webpki-roots", "gzip"] }
 tonic-build = { version = "0.11", features = ["prost"] }
 uuid = { version = "1", features = ["v4"] }
 
-mpc_sig_abs = { rev = "68081c6", git = "https://github.com/taiyi-research-institute/mpc_sig_abs.git" }
-svarog_algo = { rev = "33fdda8", git = "https://github.com/taiyi-research-institute/svarog_algo.git" }
+mpc_sig_abs = { branch = "main", git = "https://github.com/taiyi-research-institute/mpc_sig_abs.git" }
+svarog_algo = { branch = "main", git = "https://github.com/taiyi-research-institute/svarog_algo.git" }
 svarog_grpc = { path = "svarog_grpc" }
 svarog_sesman = { path = "svarog_sesman" }
 
