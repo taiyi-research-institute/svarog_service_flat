@@ -5,20 +5,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "svarog_peer"
-path = "src/server_main.rs"
-
-[[bin]]
 name = "test_keygen_sign"
 path = "src/_tests/test_keygen_sign.rs"
 
 [[bin]]
-name = "test_keygen_sign_https"
-path = "src/_tests/test_keygen_sign_https.rs"
-
-[[bin]]
-name = "test_mkeygen_bsign"
-path = "src/_tests/test_mkeygen_bsign.rs"
+name = "test_mkeygen_sign"
+path = "src/_tests/test_mkeygen_sign.rs"
 
 [[bin]]
 name = "test_reshare"
@@ -32,6 +24,7 @@ dashmap = { workspace = true }
 erreur = { workspace = true }
 hex = { workspace = true }
 mpc_sig_abs = { workspace = true }
+prost = { workspace = true }
 rand = { workspace = true }
 serde = { workspace = true }
 serde-pickle = { workspace = true }

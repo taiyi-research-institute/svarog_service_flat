@@ -1,32 +1,14 @@
 syntax = "proto3";
 package svarog;
 
-service MpcPeer {
-    rpc NewSession(SessionConfig) returns (SessionTag);
-    rpc Keygen(ParamsKeygen) returns (Keystore);
-    rpc KeygenMnem(ParamsKeygenMnem) returns (OptionalKeystore);
-    rpc Sign(ParamsSign) returns (VecSignature);
-    rpc Reshare(ParamsReshare) returns (OptionalKeystore);
-}
-
-enum Curve {
-    secp256k1 = 0;
-    ed25519 = 1;
-    // ed25519_ristretto = 2;
-}
-
-enum Scheme {
-    ElGamal = 0; // ECDSA
-    Schnorr = 1; // EdDSA
-}
-
-message Algorithm {
-    Curve curve = 1;
-    Scheme scheme = 2;
+service MpcSessionManager {
+    rpc NewSession(SessionConfig) returns (SessionId);
+    rpc GetSessionConfig(SessionId) returns (SessionConfig);
+    rpc Inbox(VecMessage) returns (Void);
+    rpc Outbox(VecMessage) returns (VecMessage);
 }
 
 message SessionConfig {
-    Algorithm algorithm = 1;
     string sesman_url = 2;
     string session_id = 3;
     uint64 threshold = 4;
@@ -35,85 +17,8 @@ message SessionConfig {
     uint64 expire_at = 7;
 }
 
-message SessionTag {
-    string session_id = 1;
-    uint64 expire_at = 2;
-}
-
-message ParamsKeygen {
-    string sesman_url = 1;
-    string session_id = 2;
-    string member_name = 3;
-}
-
-message Mnemonic {
-    string words = 1;
-    string password = 2;
-}
-
-message ParamsKeygenMnem {
-    string sesman_url = 1;
-    string session_id = 2;
-    string member_name = 3;
-    optional Mnemonic mnemonic = 4;
-}
-
-message Keystore {
-    uint64 i = 1;
-    bytes ui = 2;
-    bytes xi = 3;
-    map<uint64, CoefComs> vss_scheme = 4;
-    string xpub = 5;
-    bytes chain_code = 6;
-    Algorithm algo = 7;
-
-    bytes misc = 16;
-}
-
-message OptionalKeystore {
-    optional Keystore value = 1;
-}
-
-message CoefComs {
-    repeated bytes values = 1;
-}
-
-message ParamsSign {
-    string sesman_url = 1;
-    string session_id = 2;
-    Keystore keystore = 3;
-    repeated SignTask tasks = 6;
-}
-
-message SignTask {
-    string derivation_path = 1;
-    bytes tx_data = 2;
-}
-
-message VecSignature {
-    repeated Signature values = 1;
-}
-
-message Signature {
-    bytes r = 1;
-    bytes s = 2;
-    bytes m = 3;
-    uint32 v = 4;
-    Algorithm algo = 5;
-}
-
-message ParamsReshare {
-    string sesman_url = 1;
-    string session_id = 2;
-    string member_name = 3;
-    optional Keystore keystore = 4;
-}
-
-service MpcSessionManager {
-    rpc NewSession(SessionConfig) returns (SessionTag);
-    rpc GetSessionConfig(SessionTag) returns (SessionConfig);
-    rpc Inbox(VecMessage) returns (Void);
-    rpc Outbox(VecMessage) returns (VecMessage);
+message SessionId {
+    string value = 1;
 }
 
 message Message {

@@ -4,7 +4,7 @@ use std::collections::{BTreeSet, HashMap};
 
 use rand::Rng;
 use sha2::digest::crypto_common::rand_core::OsRng;
-use svarog_grpc::{Mnemonic, SessionConfig, SignTask};
+use svarog_peer::structs::*;
 
 pub const th1: usize = 3;
 pub const th2: usize = 4;
@@ -28,8 +28,8 @@ pub fn mock_sign_tasks() -> Vec<SignTask> {
         hasher.update(msg.as_bytes());
         let hmsg = hasher.finalize().to_vec();
         tasks.push(SignTask {
-            derivation_path: dpath.to_string(),
-            tx_data: hmsg,
+            message: hmsg,
+            bip32_path: dpath.to_string(),
         });
     }
 
@@ -40,18 +40,20 @@ pub fn mock_one_sign_task() -> Vec<SignTask> {
     vec![mock_sign_tasks().pop().unwrap()]
 }
 
-pub fn mock_keygen_config(th: usize, players: &[&str]) -> SessionConfig {
+pub fn mock_keygen_config(th: usize, players: &[&str], sesman_url: &str) -> SessionConfig {
     let mut config = SessionConfig::default();
+    config.sesman_url = sesman_url.to_owned();
     config.threshold = th as u64;
     config.players = players.iter().map(|s| (s.to_string(), true)).collect();
     config
 }
 
-pub fn mock_sign_config(th: usize, players: &[&str]) -> SessionConfig {
+pub fn mock_sign_config(th: usize, players: &[&str], sesman_url: &str) -> SessionConfig {
     let mut rng = OsRng;
 
     // shuffle players
     let mut config = SessionConfig::default();
+    config.sesman_url = sesman_url.to_owned();
     let mut players: Vec<String> = players.iter().map(|s| s.to_string()).collect();
     use rand::seq::SliceRandom;
     players.shuffle(&mut rng);
@@ -80,15 +82,17 @@ pub fn mock_reshare_config(
     providers: &[&str],
     consumer_th: usize,
     consumers: &[&str],
+    sesman_url: &str,
 ) -> (SessionConfig, BTreeSet<String>) {
     let mut config = SessionConfig::default();
 
-    let _config = mock_sign_config(provider_th, providers);
+    let _config = mock_sign_config(provider_th, providers, sesman_url);
     config.players = _config.players;
 
-    let _config = mock_keygen_config(consumer_th, consumers);
+    let _config = mock_keygen_config(consumer_th, consumers, sesman_url);
     config.threshold = consumer_th as u64;
     config.players_reshared = _config.players;
+    config.sesman_url = sesman_url.to_owned();
 
     let provider_set: BTreeSet<String> = {
         let mut res = BTreeSet::new();
@@ -105,9 +109,9 @@ pub fn mock_reshare_config(
     (config, remain_set)
 }
 
-pub fn mock_mnem() -> Mnemonic {
-    Mnemonic {
-        words: "park remain person kitchen mule spell knee armed position rail grid ankle"
+pub fn mock_mnem() -> Mnemonics {
+    Mnemonics {
+        phrases: "park remain person kitchen mule spell knee armed position rail grid ankle"
             .to_owned(),
         password: "".to_owned(),
     }

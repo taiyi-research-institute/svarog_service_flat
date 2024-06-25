@@ -4,7 +4,7 @@ use crossbeam_skiplist::SkipSet;
 use dashmap::DashMap;
 use erreur::*;
 use svarog_grpc::{
-    mpc_session_manager_server::MpcSessionManager, Message, SessionConfig, SessionTag, VecMessage,
+    mpc_session_manager_server::MpcSessionManager, Message, SessionConfig, SessionId, VecMessage,
     Void,
 };
 use tokio::{
@@ -74,7 +74,7 @@ impl MpcSessionManager for Sesman {
     async fn new_session(
         &self,
         request: Request<SessionConfig>,
-    ) -> Result<Response<SessionTag>, Status> {
+    ) -> Result<Response<SessionId>, Status> {
         let mut cfg = request.into_inner();
         if cfg.session_id == "" {
             cfg.session_id = hex::encode(uuid::Uuid::new_v4().as_bytes()).to_lowercase();
@@ -96,19 +96,18 @@ impl MpcSessionManager for Sesman {
         let session = self.sessions.get(&cfg.session_id).unwrap();
         session.insert("session_config".to_string(), cfg_bytes);
 
-        let tag = SessionTag {
-            session_id: cfg.session_id.clone(),
-            expire_at,
+        let sid = SessionId {
+            value: cfg.session_id.clone(),
         };
 
-        Ok(Response::new(tag))
+        Ok(Response::new(sid))
     }
 
     async fn get_session_config(
         &self,
-        request: Request<SessionTag>,
+        request: Request<SessionId>,
     ) -> Result<Response<SessionConfig>, Status> {
-        let sid = request.into_inner().session_id;
+        let sid = request.into_inner().value;
         let session = self
             .sessions
             .get(&sid)

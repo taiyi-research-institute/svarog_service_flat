@@ -6,7 +6,7 @@ use erreur::*;
 use mpc_sig_abs::BatchMessenger;
 use serde::{de::DeserializeOwned, Serialize};
 use svarog_grpc::{
-    mpc_session_manager_client::MpcSessionManagerClient, Message, SessionConfig, SessionTag,
+    mpc_session_manager_client::MpcSessionManagerClient, Message, SessionConfig, SessionId,
     VecMessage,
 };
 use tonic::transport::{Certificate, Channel, ClientTlsConfig};
@@ -14,7 +14,6 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig};
 #[derive(Clone)]
 pub struct SvarogChannel {
     sid: String,
-    expire_at: u64,
     cl: MpcSessionManagerClient<Channel>,
     tx: Vec<Message>,
     rx: HashMap<MessageIndex, Option<Vec<u8>>>,
@@ -33,10 +32,6 @@ impl SvarogChannel {
         &self.sid
     }
 
-    pub fn expire_at(&self) -> u64 {
-        self.expire_at
-    }
-
     pub async fn new_session(cfg: &SessionConfig, sesman_url: &str, https: bool) -> Resultat<Self> {
         let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
         if https {
@@ -53,14 +48,14 @@ impl SvarogChannel {
             .catch("", format!("Try connecting to {}", sesman_url))?;
         let mut cl = MpcSessionManagerClient::new(ch);
 
-        let tag = cl
+        let sid = cl
             .new_session(cfg.clone())
             .await
             .catch("GrpcCallFailed", "MpcSessionManager::NewSession")?
-            .into_inner();
+            .into_inner()
+            .value;
         Ok(Self {
-            sid: tag.session_id,
-            expire_at: tag.expire_at,
+            sid,
             cl,
             tx: Vec::new(),
             rx: HashMap::new(),
@@ -88,16 +83,14 @@ impl SvarogChannel {
         let mut cl = MpcSessionManagerClient::new(ch);
 
         let cfg: SessionConfig = cl
-            .get_session_config(SessionTag {
-                session_id: sid.to_owned(),
-                expire_at: 0,
+            .get_session_config(SessionId {
+                value: sid.to_owned(),
             })
             .await
             .catch("GrpcCallFailed", "MpcSessionManager::GetSessionConfig")?
             .into_inner();
         let _self = Self {
             sid: sid.to_string(),
-            expire_at: cfg.expire_at,
             cl,
             tx: Vec::new(),
             rx: HashMap::new(),

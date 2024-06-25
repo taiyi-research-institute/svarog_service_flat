@@ -5,36 +5,8 @@ use erreur::*;
 use serde_json::{from_str, from_value, Value};
 use svarog_algo::elgamal_secp256k1::{KeystoreElgamal, PaillierKey2048, ProjectivePoint, Scalar};
 use svarog_algo::num_bigint::BigInt;
-use svarog_grpc::{Algorithm, CoefComs, Curve, Keystore, Scheme};
 
-pub fn convert(old_json: &str) -> Resultat<Keystore> {
-    let new = convert_inner(old_json).catch_()?;
-
-    let mut keystore_pb = Keystore::default();
-    keystore_pb.i = new.i as u64;
-    keystore_pb.ui = new.ui.to_bytes().to_vec();
-    keystore_pb.xi = new.xi.to_bytes().to_vec();
-    for (i, coef_com_vec) in new.vss_scheme.iter() {
-        let mut coef_com_vec_pb = CoefComs::default();
-        for coef_com in coef_com_vec.iter() {
-            let coef_com_pub = coef_com.to33bytes().to_vec();
-            coef_com_vec_pb.values.push(coef_com_pub);
-        }
-        keystore_pb.vss_scheme.insert(*i as u64, coef_com_vec_pb);
-    }
-    keystore_pb.xpub = new.xpub().catch_()?;
-    let misc = (new.paillier_key.clone(), new.paillier_n_dict.clone());
-    let misc_bytes = serde_pickle::to_vec(&misc, Default::default()).catch_()?;
-    keystore_pb.algo = Some(Algorithm {
-        curve: Curve::Secp256k1.into(),
-        scheme: Scheme::ElGamal.into(),
-    });
-    keystore_pb.misc = misc_bytes;
-
-    Ok(keystore_pb)
-}
-
-fn convert_inner(old_json: &str) -> Resultat<KeystoreElgamal> {
+pub fn convert_inner(old_json: &str) -> Resultat<KeystoreElgamal> {
     let old: Value = from_str(old_json).catch_()?;
     let old = old.as_array().ifnone_()?;
 
@@ -146,7 +118,7 @@ mod tests {
     #[tokio::test]
     async fn test_convert() -> Resultat<()> {
         // 因为绕过peer直接调用算法接口, 所以不必填写会话配置.
-        let chan = SvarogChannel::new_session(&SessionConfig::default(), SESMAN_URL)
+        let chan = SvarogChannel::new_session(&SessionConfig::default(), SESMAN_URL, false)
             .await
             .catch_()?;
 

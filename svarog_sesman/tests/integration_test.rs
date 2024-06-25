@@ -15,7 +15,7 @@ async fn test_client() -> Resultat<()> {
     players.sort();
 
     let i_set: Vec<usize> = (1..=players.len()).collect();
-    let messenger = SvarogChannel::new_session(&cfg, "http://127.0.0.1:2000")
+    let messenger = SvarogChannel::new_session(&cfg, "http://127.0.0.1:2000", false)
         .await
         .catch_()?;
     println!("Session ID: {}", &messenger.sid());
