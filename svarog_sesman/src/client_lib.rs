@@ -1,20 +1,27 @@
 //! Sesman client library
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    time::Duration,
+};
 
 use erreur::*;
 use mpc_sig_abs::BatchMessenger;
 use serde::{de::DeserializeOwned, Serialize};
 use svarog_grpc::{
-    mpc_session_manager_client::MpcSessionManagerClient, Message, SessionConfig, SessionTag,
+    mpc_session_manager_client::MpcSessionManagerClient, Message, SessionConfig, SessionId,
     VecMessage,
 };
-use tonic::transport::Channel;
+use tonic::{
+    transport::{Certificate, Channel, ClientTlsConfig},
+    Request,
+};
+
+pub const SESSION_EXPIRE_MS: u128 = 300_000;
 
 #[derive(Clone)]
 pub struct SvarogChannel {
     sid: String,
-    expire_at: u64,
     cl: MpcSessionManagerClient<Channel>,
     tx: Vec<Message>,
     rx: HashMap<MessageIndex, Option<Vec<u8>>>,
@@ -33,45 +40,67 @@ impl SvarogChannel {
         &self.sid
     }
 
-    pub fn expire_at(&self) -> u64 {
-        self.expire_at
-    }
-
-    pub async fn new_session(cfg: &SessionConfig, sesman_url: &str) -> Resultat<Self> {
-        let mut cl = MpcSessionManagerClient::connect(sesman_url.to_owned())
+    pub async fn new_session(cfg: &SessionConfig, sesman_url: &str, https: bool) -> Resultat<Self> {
+        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
+        if https {
+            let pem = tokio::fs::read_to_string("tls/fullchain.pem")
+                .await
+                .catch_()?;
+            let ca = Certificate::from_pem(pem);
+            let tls = ClientTlsConfig::new().ca_certificate(ca);
+            ch = ch.tls_config(tls).catch_()?;
+        }
+        let ch = ch
+            .connect()
             .await
-            .map_err(|e| format!("{:#?}", e))
-            .catch("CannotConnectGrpcServer", sesman_url)?;
-        let tag = cl
+            .catch("", format!("Try connecting to {}", sesman_url))?;
+        let mut cl = MpcSessionManagerClient::new(ch);
+
+        let sid = cl
             .new_session(cfg.clone())
             .await
             .catch("GrpcCallFailed", "MpcSessionManager::NewSession")?
-            .into_inner();
+            .into_inner()
+            .value;
         Ok(Self {
-            sid: tag.session_id,
-            expire_at: tag.expire_at,
+            sid,
             cl,
             tx: Vec::new(),
             rx: HashMap::new(),
         })
     }
 
-    pub async fn use_session(sid: &str, sesman_url: &str) -> Resultat<(Self, SessionConfig)> {
-        let mut cl = MpcSessionManagerClient::connect(sesman_url.to_owned())
+    pub async fn use_session(
+        sid: &str,
+        sesman_url: &str,
+        https: bool,
+    ) -> Resultat<(Self, SessionConfig)> {
+        let mut ch = Channel::from_shared(sesman_url.to_string()).catch_()?;
+        if https {
+            let pem = tokio::fs::read_to_string("tls/fullchain.pem")
+                .await
+                .catch_()?;
+            let ca = Certificate::from_pem(pem);
+            let tls = ClientTlsConfig::new().ca_certificate(ca);
+            ch = ch.tls_config(tls).catch_()?;
+        }
+        let ch = ch
+            .connect()
             .await
-            .map_err(|e| format!("{:#?}", e))
-            .catch("CannotConnectGrpcServer", sesman_url)?;
+            .catch("", format!("Try connecting to {}", sesman_url))?;
+        let mut cl = MpcSessionManagerClient::new(ch);
+
+        let mut req = Request::new(SessionId {
+            value: sid.to_owned(),
+        });
+        req.set_timeout(Duration::from_millis(SESSION_EXPIRE_MS as u64));
         let cfg: SessionConfig = cl
-            .get_session_config(SessionTag {
-                session_id: sid.to_owned(),
-                expire_at: 0,
-            })
+            .get_session_config(req)
             .await
             .catch("GrpcCallFailed", "MpcSessionManager::GetSessionConfig")?
             .into_inner();
         let _self = Self {
             sid: sid.to_string(),
-            expire_at: cfg.expire_at,
             cl,
             tx: Vec::new(),
             rx: HashMap::new(),
@@ -155,7 +184,8 @@ impl BatchMessenger for SvarogChannel {
                 obj: None,
             })
             .collect();
-        let req = VecMessage { values: req };
+        let mut req = Request::new(VecMessage { values: req });
+        req.set_timeout(Duration::from_millis(SESSION_EXPIRE_MS as u64));
         let resp = cl
             .outbox(req)
             .await

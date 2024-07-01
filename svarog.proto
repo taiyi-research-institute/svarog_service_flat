@@ -2,11 +2,12 @@ syntax = "proto3";
 package svarog;
 
 service MpcPeer {
-    rpc NewSession(SessionConfig) returns (SessionTag);
+    rpc NewSession(SessionConfig) returns (SessionId);
     rpc Keygen(ParamsKeygen) returns (KeyTag);
     rpc KeygenMnem(ParamsKeygenMnem) returns (KeyTag);
     rpc Sign(ParamsSign) returns (VecSignature);
     rpc Reshare(ParamsReshare) returns (KeyTag);
+    rpc Ping(Void) returns (EchoMessage);
 }
 
 enum Curve {
@@ -32,7 +33,6 @@ message SessionConfig {
     uint64 threshold = 4;
     map<string, Department> players = 5;
     map<string, Department> players_reshared = 6;
-    uint64 expire_at = 7;
 }
 
 message Department {
@@ -41,9 +41,8 @@ message Department {
     map<string, bool> players = 3;
 }
 
-message SessionTag {
-    string session_id = 1;
-    uint64 expire_at = 2;
+message SessionId {
+    string value = 1;
 }
 
 message ParamsKeygen {
@@ -102,10 +101,11 @@ message ParamsReshare {
 }
 
 service MpcSessionManager {
-    rpc NewSession(SessionConfig) returns (SessionTag);
-    rpc GetSessionConfig(SessionTag) returns (SessionConfig);
+    rpc NewSession(SessionConfig) returns (SessionId);
+    rpc GetSessionConfig(SessionId) returns (SessionConfig);
     rpc Inbox(VecMessage) returns (Void);
     rpc Outbox(VecMessage) returns (VecMessage);
+    rpc Ping(Void) returns (EchoMessage);
 }
 
 message Message {
@@ -119,6 +119,10 @@ message Message {
 
 message VecMessage {
     repeated Message values = 1;
+}
+
+message EchoMessage {
+    string value =  1;
 }
 
 message Void {}

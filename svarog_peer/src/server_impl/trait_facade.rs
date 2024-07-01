@@ -6,8 +6,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use erreur::*;
 use svarog_grpc::{
-    mpc_peer_server::MpcPeer, Curve, Department, KeyTag, ParamsKeygen, ParamsKeygenMnem,
-    ParamsReshare, ParamsSign, Scheme, SessionConfig, SessionTag, Signature, VecSignature,
+    mpc_peer_server::MpcPeer, Curve, Department, EchoMessage, KeyTag, ParamsKeygen,
+    ParamsKeygenMnem, ParamsReshare, ParamsSign, Scheme, SessionConfig, SessionId, Signature,
+    VecSignature, Void,
 };
 use svarog_sesman::SvarogChannel;
 use tonic::{Request, Response, Status};
@@ -98,15 +99,15 @@ impl MpcPeer for SvarogPeer {
     async fn new_session(
         &self,
         request: Request<SessionConfig>,
-    ) -> Result<Response<SessionTag>, Status> {
+    ) -> Result<Response<SessionId>, Status> {
         let cfg = request.into_inner();
-        let chan = SvarogChannel::new_session(&cfg, &cfg.sesman_url)
+        println!("{:#?}", &cfg);
+        let chan = SvarogChannel::new_session(&cfg, &cfg.sesman_url, false)
             .await
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;
-        let tag = SessionTag {
-            session_id: chan.sid().to_owned(),
-            expire_at: chan.expire_at(),
+        let tag = SessionId {
+            value: chan.sid().to_owned(),
         };
         Ok(Response::new(tag))
     }
@@ -114,9 +115,10 @@ impl MpcPeer for SvarogPeer {
     async fn keygen(&self, request: Request<ParamsKeygen>) -> Result<Response<KeyTag>, Status> {
         async fn foo(request: Request<ParamsKeygen>) -> Resultat<KeyTag> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, false)
+                    .await
+                    .catch_()?;
             let arch = ses_arch(&params.member_name, &cfg.players, cfg.threshold as usize);
             '_assert: {
                 let num_players: usize = cfg.players.iter().map(|(_, v)| v.players.len()).sum();
@@ -180,9 +182,10 @@ impl MpcPeer for SvarogPeer {
     ) -> Result<Response<KeyTag>, Status> {
         async fn foo(request: Request<ParamsKeygenMnem>) -> Resultat<KeyTag> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, false)
+                    .await
+                    .catch_()?;
             let arch = ses_arch(&params.member_name, &cfg.players, cfg.threshold as usize);
             '_assert: {
                 let num_players: usize = cfg.players.iter().map(|(_, v)| v.players.len()).sum();
@@ -244,9 +247,10 @@ impl MpcPeer for SvarogPeer {
     async fn sign(&self, request: Request<ParamsSign>) -> Result<Response<VecSignature>, Status> {
         async fn foo(request: Request<ParamsSign>) -> Resultat<Vec<Signature>> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, false)
+                    .await
+                    .catch_()?;
             let arch = ses_arch("", &cfg.players, 0);
             let tasks = params.tasks;
             let algo = cfg.algorithm.ifnone_()?;
@@ -286,9 +290,10 @@ impl MpcPeer for SvarogPeer {
     async fn reshare(&self, request: Request<ParamsReshare>) -> Result<Response<KeyTag>, Status> {
         async fn foo(request: Request<ParamsReshare>) -> Resultat<KeyTag> {
             let params = request.into_inner();
-            let (chan, cfg) = SvarogChannel::use_session(&params.session_id, &params.sesman_url)
-                .await
-                .catch_()?;
+            let (chan, cfg) =
+                SvarogChannel::use_session(&params.session_id, &params.sesman_url, false)
+                    .await
+                    .catch_()?;
             let providers = ses_arch("", &cfg.players, 0).players;
             let arch = ses_arch(
                 &params.member_name,
@@ -361,5 +366,11 @@ impl MpcPeer for SvarogPeer {
             .catch_()
             .map_err(|e| Status::internal(e.to_string()))?;
         Ok(Response::new(keytag))
+    }
+
+    async fn ping(&self, _: Request<Void>) -> Result<Response<EchoMessage>, Status> {
+        Ok(Response::new(EchoMessage {
+            value: "Svarog Peer (with Nested Shamir) is running.".to_owned(),
+        }))
     }
 }

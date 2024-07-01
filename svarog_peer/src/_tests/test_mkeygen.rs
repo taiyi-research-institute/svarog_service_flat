@@ -43,7 +43,7 @@ async fn main() -> Resultat<()> {
                 .await
                 .catch_()?
                 .into_inner();
-            let sid = tag.session_id;
+            let sid = tag.value;
             let mut threads = BTreeMap::new();
             for (_, dept_obj) in cfg.keygen.players.iter() {
                 for (player, _) in dept_obj.players.iter() {
@@ -95,7 +95,7 @@ async fn main() -> Resultat<()> {
                 .await
                 .catch_()?
                 .into_inner();
-            let sid = tag.session_id;
+            let sid = tag.value;
             let mut threads = BTreeMap::new();
             for (_, dept_obj) in cfg.sign.players.iter() {
                 for (player, &att) in dept_obj.players.iter() {
