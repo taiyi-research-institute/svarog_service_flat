@@ -179,6 +179,7 @@ async fn impl_sign(
                 r: sig.R.compress().to_bytes(),
                 s: sig.s.to_bytes(),
                 v: 0,
+                pk: sig.pk.compress().to_bytes().to_vec(),
             };
             res.push(sig);
         }

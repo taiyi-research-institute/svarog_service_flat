@@ -27,6 +27,7 @@ mpc_sig_abs = { workspace = true }
 prost = { workspace = true }
 rand = { workspace = true }
 serde = { workspace = true }
+serde_bytes = { workspace = true }
 serde-pickle = { workspace = true }
 sha2 = { workspace = true }
 tokio = { workspace = true }

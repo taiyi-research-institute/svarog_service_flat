@@ -70,6 +70,22 @@ async fn test_btc() -> Resultat<()> {
         assert_throw!(sig == sig0);
     }
 
+    // let tasks = mock_sign_tasks();
+    // for i in 0..tasks.len() {
+    //     let m = &tasks[i].message;
+    //     let m = hex::encode(m);
+
+    //     let sig = &sig0[i];
+    //     let mut rsv_bytes = [0u8; 65];
+    //     rsv_bytes[0..32].copy_from_slice(&sig.r);
+    //     rsv_bytes[32..64].copy_from_slice(&sig.s);
+    //     rsv_bytes[64] = sig.v;
+    //     let rsv = hex::encode(rsv_bytes);
+
+    //     let pk = hex::encode(&sig.pk);
+    //     println!("--hash {} --rsv {} --pk {}", m, rsv, pk);
+    // }
+
     Ok(())
 }
 

@@ -14,9 +14,16 @@ pub struct SignTask {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Signature {
+    #[serde(with = "serde_bytes")]
     pub r: [u8; 32],
+
+    #[serde(with = "serde_bytes")]
     pub s: [u8; 32],
+
     pub v: u8,
+
+    #[serde(with = "serde_bytes")]
+    pub pk: Vec<u8>,
 }
 
 pub use svarog_algo::elgamal_secp256k1::KeystoreElgamal;

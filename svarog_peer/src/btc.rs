@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use erreur::*;
 use svarog_algo::elgamal_secp256k1::{
     keygen, keygen_mnem_consumer, keygen_mnem_provider, reshare_consumer, reshare_provider,
-    sign_batch, KeystoreElgamal, SignatureElgamal,
+    sign_batch, KeystoreElgamal,
 };
 use svarog_sesman::SvarogChannel;
 
@@ -165,10 +165,12 @@ async fn impl_sign(
         let sigs = sign_batch(chan, signers, keystore, tasks).await.catch_()?;
         let mut res = Vec::new();
         for sig in sigs.into_iter() {
+            let (r, v) = sig.eval_rv();
             let sig = Signature {
-                r: *SignatureElgamal::eval_rx(&sig.R).to_bytes().as_ref(),
+                r,
                 s: *sig.s.to_bytes().as_ref(),
-                v: sig.v,
+                v,
+                pk: sig.pk.to33bytes().to_vec(),
             };
             res.push(sig);
         }
