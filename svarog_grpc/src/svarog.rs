@@ -13,8 +13,6 @@ pub struct SessionConfig {
     pub players: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
     #[prost(map = "string, bool", tag = "6")]
     pub players_reshared: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
-    #[prost(uint64, tag = "7")]
-    pub expire_at: u64,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -46,6 +44,13 @@ pub struct Message {
 pub struct VecMessage {
     #[prost(message, repeated, tag = "1")]
     pub values: ::prost::alloc::vec::Vec<Message>,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EchoMessage {
+    #[prost(string, tag = "1")]
+    pub value: ::prost::alloc::string::String,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -206,6 +211,23 @@ pub mod mpc_session_manager_client {
                 .insert(GrpcMethod::new("svarog.MpcSessionManager", "Outbox"));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn ping(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Void>,
+        ) -> std::result::Result<tonic::Response<super::EchoMessage>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/svarog.MpcSessionManager/Ping");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("svarog.MpcSessionManager", "Ping"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -231,6 +253,10 @@ pub mod mpc_session_manager_server {
             &self,
             request: tonic::Request<super::VecMessage>,
         ) -> std::result::Result<tonic::Response<super::VecMessage>, tonic::Status>;
+        async fn ping(
+            &self,
+            request: tonic::Request<super::Void>,
+        ) -> std::result::Result<tonic::Response<super::EchoMessage>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct MpcSessionManagerServer<T: MpcSessionManager> {
@@ -455,6 +481,43 @@ pub mod mpc_session_manager_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = OutboxSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/svarog.MpcSessionManager/Ping" => {
+                    #[allow(non_camel_case_types)]
+                    struct PingSvc<T: MpcSessionManager>(pub Arc<T>);
+                    impl<T: MpcSessionManager> tonic::server::UnaryService<super::Void> for PingSvc<T> {
+                        type Response = super::EchoMessage;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::Void>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as MpcSessionManager>::ping(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = PingSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

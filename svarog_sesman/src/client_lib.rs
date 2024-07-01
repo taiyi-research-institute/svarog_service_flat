@@ -1,6 +1,9 @@
 //! Sesman client library
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    time::Duration,
+};
 
 use erreur::*;
 use mpc_sig_abs::BatchMessenger;
@@ -9,7 +12,12 @@ use svarog_grpc::{
     mpc_session_manager_client::MpcSessionManagerClient, Message, SessionConfig, SessionId,
     VecMessage,
 };
-use tonic::transport::{Certificate, Channel, ClientTlsConfig};
+use tonic::{
+    transport::{Certificate, Channel, ClientTlsConfig},
+    Request,
+};
+
+pub const SESSION_EXPIRE_MS: u128 = 300_000;
 
 #[derive(Clone)]
 pub struct SvarogChannel {
@@ -82,10 +90,12 @@ impl SvarogChannel {
             .catch("", format!("Try connecting to {}", sesman_url))?;
         let mut cl = MpcSessionManagerClient::new(ch);
 
+        let mut req = Request::new(SessionId {
+            value: sid.to_owned(),
+        });
+        req.set_timeout(Duration::from_millis(SESSION_EXPIRE_MS as u64));
         let cfg: SessionConfig = cl
-            .get_session_config(SessionId {
-                value: sid.to_owned(),
-            })
+            .get_session_config(req)
             .await
             .catch("GrpcCallFailed", "MpcSessionManager::GetSessionConfig")?
             .into_inner();
@@ -174,7 +184,8 @@ impl BatchMessenger for SvarogChannel {
                 obj: None,
             })
             .collect();
-        let req = VecMessage { values: req };
+        let mut req = Request::new(VecMessage { values: req });
+        req.set_timeout(Duration::from_millis(SESSION_EXPIRE_MS as u64));
         let resp = cl
             .outbox(req)
             .await

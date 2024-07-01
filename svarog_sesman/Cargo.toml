@@ -13,9 +13,9 @@ name = "svarog_sesman"
 path = "src/client_lib.rs"
 
 [dependencies]
+blake2 = "0.10.6"
 clap = { workspace = true }
 crossbeam-skiplist = { workspace = true }
-dashmap = { workspace = true }
 erreur = { workspace = true }
 hex = { workspace = true }
 mpc_sig_abs = { workspace = true }

@@ -36,7 +36,7 @@ async fn main() -> Resultat<()> {
     println!("svarog_sesman will listen on {}:{}", &host, port);
 
     // Init service
-    let (sesman, recycle_task_handle) = Sesman::init(1200).await.catch_()?;
+    let (sesman, recycle_task_handle) = Sesman::init().await.catch_()?;
 
     // Start server
     let mut server = Server::builder();

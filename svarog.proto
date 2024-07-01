@@ -6,6 +6,7 @@ service MpcSessionManager {
     rpc GetSessionConfig(SessionId) returns (SessionConfig);
     rpc Inbox(VecMessage) returns (Void);
     rpc Outbox(VecMessage) returns (VecMessage);
+    rpc Ping(Void) returns (EchoMessage);
 }
 
 message SessionConfig {
@@ -14,7 +15,6 @@ message SessionConfig {
     uint64 threshold = 4;
     map<string, bool> players = 5;
     map<string, bool> players_reshared = 6;
-    uint64 expire_at = 7;
 }
 
 message SessionId {
@@ -32,6 +32,10 @@ message Message {
 
 message VecMessage {
     repeated Message values = 1;
+}
+
+message EchoMessage {
+    string value =  1;
 }
 
 message Void {}
